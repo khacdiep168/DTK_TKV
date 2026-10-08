@@ -1,0 +1,231 @@
+<!-- Components.html -->
+
+<!-- Modal: Xem & In Phiếu Vào Bãi Gate In (CLAUDE.md Section 14) -->
+<div class="modal fade" id="ticketModal" tabindex="-1" aria-labelledby="ticketModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-primary text-white py-2">
+        <h6 class="modal-title fw-bold" id="ticketModalLabel"><i class="bi bi-printer me-2"></i>PHIẾU VÀO BÃI (GATE IN TICKET)</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3">
+        <!-- Ticket Card Layout -->
+        <div class="ticket-receipt-card" id="modal-ticket-card">
+          <div class="ticket-header-title" id="t-company-name">BÃI XE CẢNG HÀNG HÓA XUẤT NHẬP KHẨU</div>
+          <div class="ticket-sub-title">PHIẾU VÀO BÃI (GATE IN)</div>
+
+          <div class="ticket-row">
+            <span class="ticket-row-label">Số vé:</span>
+            <span class="ticket-row-val text-primary" id="t-ticket-no">BAI-20261008-000125</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Biển số xe:</span>
+            <span class="ticket-row-val" id="t-plate">51C-12345</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Loại xe:</span>
+            <span class="ticket-row-val" id="t-type">CONTAINER</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Nghiệp vụ:</span>
+            <span class="ticket-row-val" id="t-direction">NHẬP KHẨU</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Số Container:</span>
+            <span class="ticket-row-val" id="t-container">MSCU1234567</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Đơn vị vận tải:</span>
+            <span class="ticket-row-val" id="t-company">ABC LOGISTICS</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Tài xế:</span>
+            <span class="ticket-row-val" id="t-driver">Nguyễn Văn A</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Giờ vào:</span>
+            <span class="ticket-row-val" id="t-intime">08/10/2026 08:35:21</span>
+          </div>
+
+          <!-- QR Code Canvas / Container -->
+          <div class="ticket-qr-container">
+            <div id="modal-ticket-qr"></div>
+          </div>
+
+          <div class="ticket-footer" id="t-note">
+            Vui lòng giữ phiếu cẩn thận để làm thủ tục xuất bãi tại cổng ra.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+        <button type="button" class="btn btn-primary fw-bold" onclick="printTicketFromModal()">
+          <i class="bi bi-printer-fill me-1"></i> IN PHIẾU NGAY (80mm / A4)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Biên Lai Xuất Bãi Gate Out & Thanh Toán -->
+<div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-success text-white py-2">
+        <h6 class="modal-title fw-bold" id="receiptModalLabel"><i class="bi bi-receipt me-2"></i>BIÊN LAI XUẤT BÃI (GATE OUT PASS)</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3">
+        <div class="ticket-receipt-card" id="modal-receipt-card">
+          <div class="ticket-header-title">BÃI XE CẢNG HÀNG HÓA XUẤT NHẬP KHẨU</div>
+          <div class="ticket-sub-title">BIÊN LAI THANH TOÁN & CHO PHÉP XUẤT BÃI</div>
+
+          <div class="ticket-row">
+            <span class="ticket-row-label">Số vé:</span>
+            <span class="ticket-row-val text-success" id="r-ticket-no">—</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Biển số xe:</span>
+            <span class="ticket-row-val" id="r-plate">—</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Loại xe:</span>
+            <span class="ticket-row-val" id="r-type">—</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Container:</span>
+            <span class="ticket-row-val" id="r-container">—</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Giờ vào:</span>
+            <span class="ticket-row-val" id="r-intime">—</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Giờ ra:</span>
+            <span class="ticket-row-val" id="r-outtime">—</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Thời gian lưu:</span>
+            <span class="ticket-row-val" id="r-duration">—</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Số ngày tính phí:</span>
+            <span class="ticket-row-val text-primary" id="r-days">—</span>
+          </div>
+          <div class="ticket-row border-top pt-1 mt-1">
+            <span class="ticket-row-label fw-bold">Tổng thanh toán:</span>
+            <span class="ticket-row-val text-success fs-6 fw-bold" id="r-total">—</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Nhân viên cổng ra:</span>
+            <span class="ticket-row-val" id="r-outby">—</span>
+          </div>
+
+          <div class="ticket-footer">
+            Chúc quý khách vạn dặm bình an! Hẹn gặp lại.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+        <button type="button" class="btn btn-success fw-bold" onclick="printReceiptFromModal()">
+          <i class="bi bi-printer-fill me-1"></i> IN BIÊN LAI
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Thêm / Sửa Bảng Giá PRICE_CONFIG -->
+<div class="modal fade" id="priceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-bold" id="priceModalTitle">Thêm / Sửa Bảng Giá</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3">
+        <input type="hidden" id="p-id">
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Loại Phương Tiện <span class="text-danger">*</span></label>
+          <select id="p-vtype" class="form-select form-select-sm">
+            <option value="CONTAINER">CONTAINER</option>
+            <option value="TRUCK">TRUCK (Xe Tải)</option>
+          </select>
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Tải trọng từ (kg)</label>
+            <input type="number" id="p-minweight" class="form-control form-control-sm" placeholder="0">
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Đến tải trọng (kg)</label>
+            <input type="number" id="p-maxweight" class="form-control form-control-sm" placeholder="7000">
+          </div>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Đơn Giá / Ngày (VNĐ) <span class="text-danger">*</span></label>
+          <input type="number" id="p-amount" class="form-control form-control-sm" placeholder="100000">
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Trạng Thái</label>
+          <select id="p-status" class="form-select form-select-sm">
+            <option value="ACTIVE">ACTIVE (Hiệu lực)</option>
+            <option value="INACTIVE">INACTIVE (Hết hiệu lực)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-primary btn-sm fw-bold" onclick="savePriceFromModal()">Lưu Cấu Hình</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Thêm / Sửa Người Dùng USERS -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-bold" id="userModalTitle">Thêm / Sửa Tài Khoản</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3">
+        <input type="hidden" id="u-id">
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Email Google <span class="text-danger">*</span></label>
+          <input type="email" id="u-email" class="form-control form-control-sm" placeholder="nhanvien@congty.com">
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Họ Và Tên <span class="text-danger">*</span></label>
+          <input type="text" id="u-name" class="form-control form-control-sm" placeholder="Nguyễn Văn A">
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Quyền Hạn (Role) <span class="text-danger">*</span></label>
+          <select id="u-role" class="form-select form-select-sm">
+            <option value="ADMIN">ADMIN - Toàn quyền quản trị</option>
+            <option value="BAI">BAI - Nhân viên bãi & Import</option>
+            <option value="GATE_IN">GATE_IN - Nhân viên cổng vào</option>
+            <option value="YARD">YARD - Nhân viên bãi GetIn/GetOut</option>
+            <option value="GATE_OUT">GATE_OUT - Nhân viên cổng ra</option>
+          </select>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Trạng Thái</label>
+          <select id="u-status" class="form-select form-select-sm">
+            <option value="ACTIVE">ACTIVE (Đang hoạt động)</option>
+            <option value="INACTIVE">INACTIVE (Đã khóa)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-primary btn-sm fw-bold" onclick="saveUserFromModal()">Lưu Tài Khoản</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Khu vực dành riêng cho việc in (Thermal 80mm & A4) -->
+<div id="print-ticket-area"></div>

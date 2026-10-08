@@ -1,0 +1,3513 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Quản Lý Bãi Xe Hàng Hóa Xuất Nhập Khẩu - DTK LOGISTICS</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5.3 CSS & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css" rel="stylesheet">
+
+  <style>
+/* ==========================================================================
+   DESIGN SYSTEM - QUẢN LÝ BÃI XE HÀNG HÓA XUẤT NHẬP KHẨU
+   Phong cách: Simple – Modern – Professional – Fast
+   Hỗ trợ hoàn hảo: Desktop, Laptop, Tablet, Smartphone (Mobile)
+   ========================================================================== */
+
+:root {
+  --primary: #1e40af;
+  --primary-hover: #1d4ed8;
+  --primary-light: #eff6ff;
+  --primary-dark: #172554;
+  
+  --secondary: #475569;
+  --surface: #ffffff;
+  --surface-alt: #f8fafc;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  
+  /* Màu trạng thái chuẩn theo CLAUDE.md Section 42 */
+  --status-registered: #64748b;    /* Trung tính */
+  --status-inyard: #2563eb;        /* Xanh dương */
+  --status-ready: #d97706;         /* Cam */
+  --status-completed: #16a34a;     /* Xanh lá */
+  --status-cancelled: #dc2626;     /* Đỏ */
+  
+  --sidebar-width: 250px;
+  --header-height: 64px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: #f1f5f9;
+  color: var(--text-main);
+  line-height: 1.5;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Layout Container */
+.app-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar Navigation */
+.app-sidebar {
+  width: var(--sidebar-width);
+  background-color: #0f172a;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+  transition: transform 0.25s ease-in-out;
+}
+
+.sidebar-header {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  padding: 0 1.25rem;
+  border-bottom: 1px solid #1e293b;
+  gap: 0.75rem;
+}
+
+.sidebar-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+  background: #ffffff;
+  padding: 2px;
+}
+
+.sidebar-brand {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.sidebar-brand small {
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: #94a3b8;
+  display: block;
+}
+
+.sidebar-nav {
+  list-style: none;
+  padding: 1rem 0.75rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.nav-section-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+  padding: 0.75rem 0.75rem 0.25rem;
+  letter-spacing: 0.05em;
+}
+
+.nav-item {
+  margin-bottom: 0.25rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  color: #cbd5e1;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 0.88rem;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.nav-link:hover {
+  background-color: #1e293b;
+  color: #ffffff;
+}
+
+.nav-link.active {
+  background-color: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+
+.nav-link i {
+  font-size: 1.1rem;
+  width: 20px;
+  text-align: center;
+}
+
+.nav-badge {
+  margin-left: auto;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  background-color: #334155;
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.nav-link.active .nav-badge {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Main Content Area */
+.app-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Top App Header */
+.app-header {
+  height: var(--header-height);
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 900;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.menu-toggle-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-main);
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.page-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-profile-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  background-color: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+}
+
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.role-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-sm);
+  background-color: #e0e7ff;
+  color: #3730a3;
+  text-transform: uppercase;
+}
+
+/* Content Container */
+.app-content {
+  padding: 1.5rem;
+  flex: 1;
+}
+
+/* View Sections (SPA) */
+.view-section {
+  display: none;
+}
+
+.view-section.active {
+  display: block;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* KPI Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.kpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  margin-bottom: 0.5rem;
+}
+
+.kpi-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.kpi-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.1;
+  margin-bottom: 0.25rem;
+}
+
+.kpi-subtext {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Status Badges */
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.badge-status::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.badge-REGISTERED {
+  background-color: #f1f5f9;
+  color: var(--status-registered);
+  border: 1px solid #cbd5e1;
+}
+.badge-REGISTERED::before { background-color: var(--status-registered); }
+
+.badge-WAITING_GATE_IN {
+  background-color: #fef9c3;
+  color: #854d0e;
+  border: 1px solid #fde047;
+}
+.badge-WAITING_GATE_IN::before { background-color: #ca8a04; }
+
+.badge-IN_YARD {
+  background-color: #dbeafe;
+  color: var(--status-inyard);
+  border: 1px solid #bfdbfe;
+}
+.badge-IN_YARD::before { background-color: var(--status-inyard); }
+
+.badge-READY_TO_EXIT {
+  background-color: #fef3c7;
+  color: var(--status-ready);
+  border: 1px solid #fde68a;
+}
+.badge-READY_TO_EXIT::before { background-color: var(--status-ready); }
+
+.badge-COMPLETED {
+  background-color: #dcfce7;
+  color: var(--status-completed);
+  border: 1px solid #bbf7d0;
+}
+.badge-COMPLETED::before { background-color: var(--status-completed); }
+
+.badge-CANCELLED {
+  background-color: #fee2e2;
+  color: var(--status-cancelled);
+  border: 1px solid #fecaca;
+}
+.badge-CANCELLED::before { background-color: var(--status-cancelled); }
+
+/* Direction Badges */
+.badge-dir-import {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.badge-dir-export {
+  background-color: #faf5ff;
+  color: #7e22ce;
+  border: 1px solid #e9d5ff;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* Operation Cards & Action Blocks */
+.action-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+}
+
+.action-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.action-card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Gate Operator Huge Touch Buttons */
+.btn-gate-action {
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: 1rem 2rem;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-md);
+  width: 100%;
+}
+
+.btn-gate-action:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-gate-in {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+.btn-gate-in:hover { background-color: #1d4ed8; }
+
+.btn-gate-ready {
+  background-color: #d97706;
+  color: #ffffff;
+}
+.btn-gate-ready:hover { background-color: #b45309; }
+
+.btn-gate-out {
+  background-color: #16a34a;
+  color: #ffffff;
+}
+.btn-gate-out:hover { background-color: #15803d; }
+
+/* Large Search Bar for Gate Operator */
+.search-operator-box {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.input-operator-plate {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.75rem 1rem;
+  border: 2px solid #cbd5e1;
+  border-radius: var(--radius-md);
+  flex: 1;
+  transition: border-color 0.15s ease;
+}
+
+.input-operator-plate:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.btn-operator-search {
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  background-color: #0f172a;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Vehicle Inspection Preview Card */
+.vehicle-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  background-color: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.info-item-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.info-item-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  word-break: break-word;
+}
+
+.info-item-value.highlight {
+  color: var(--primary);
+  font-size: 1.35rem;
+}
+
+/* Data Tables */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.data-table th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-main);
+  vertical-align: middle;
+}
+
+.data-table tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Over 24 hours alert badge */
+.badge-over24h {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Ticket Receipt Print Styles (80mm Thermal Printer & Standard A4/A5) */
+@media screen {
+  #print-ticket-area {
+    display: none;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-ticket-area, #print-ticket-area * {
+    visibility: visible;
+  }
+  #print-ticket-area {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    margin: 0 auto;
+    padding: 10px;
+    background: #fff;
+    color: #000;
+    font-family: monospace, -apple-system, sans-serif;
+    font-size: 11pt;
+    line-height: 1.3;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+.ticket-receipt-card {
+  border: 2px dashed #000;
+  padding: 12px;
+  background: #fff;
+  text-align: center;
+}
+
+.ticket-header-title {
+  font-size: 13pt;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.ticket-sub-title {
+  font-size: 10pt;
+  font-weight: 700;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #000;
+}
+
+.ticket-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  font-size: 9.5pt;
+  text-align: left;
+}
+
+.ticket-row-label {
+  font-weight: 600;
+  width: 45%;
+}
+
+.ticket-row-val {
+  font-weight: 800;
+  width: 55%;
+  text-align: right;
+}
+
+.ticket-qr-container {
+  margin: 10px auto;
+  display: flex;
+  justify-content: center;
+}
+
+.ticket-footer {
+  font-size: 8.5pt;
+  font-style: italic;
+  margin-top: 8px;
+  border-top: 1px dashed #000;
+  padding-top: 6px;
+}
+
+/* Responsive Breakpoints (CLAUDE.md Section 41: Mobile / Tablet) */
+@media (max-width: 992px) {
+  .app-sidebar {
+    transform: translateX(-100%);
+  }
+  .app-sidebar.show {
+    transform: translateX(0);
+  }
+  .app-main {
+    margin-left: 0;
+  }
+  .menu-toggle-btn {
+    display: block;
+  }
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 950;
+  }
+  .sidebar-backdrop.show {
+    display: block;
+  }
+}
+
+@media (max-width: 576px) {
+  .app-content {
+    padding: 0.75rem;
+  }
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .kpi-card {
+    padding: 0.75rem;
+  }
+  .kpi-value {
+    font-size: 1.35rem;
+  }
+  .search-operator-box {
+    flex-direction: column;
+  }
+  .input-operator-plate {
+    font-size: 1.2rem;
+  }
+  .btn-gate-action {
+    font-size: 1.05rem;
+    padding: 0.85rem 1rem;
+  }
+}
+</style>
+
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar(false)"></div>
+
+    <aside class="app-sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <img src="Logo/logo.png" onerror="this.src='https://api.iconify.design/bi:truck-front-fill.svg?color=%232563eb'" class="sidebar-logo" alt="Logo">
+        <div class="sidebar-brand">
+          DTK LOGISTICS
+          <small>QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU</small>
+        </div>
+      </div>
+
+      <ul class="sidebar-nav">
+        <li class="nav-section-title">Tổng quan</li>
+        <li class="nav-item">
+          <a class="nav-link active" id="nav-dashboard" onclick="navigateTo('dashboard')">
+            <i class="bi bi-grid-1x2"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+
+        <li class="nav-section-title">Quy trình cổng & bãi</li>
+        <li class="nav-item">
+          <a class="nav-link" id="nav-gatein" onclick="navigateTo('gatein')">
+            <i class="bi bi-box-arrow-in-right text-primary"></i>
+            <span>Cổng Vào (Gate In)</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="nav-yard" onclick="navigateTo('yard')">
+            <i class="bi bi-building text-warning"></i>
+            <span>Trong Bãi (Yard)</span>
+            <span class="nav-badge" id="sidebar-yard-count">0</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="nav-gateout" onclick="navigateTo('gateout')">
+            <i class="bi bi-box-arrow-right text-success"></i>
+            <span>Cổng Ra (Gate Out)</span>
+          </a>
+        </li>
+
+        <li class="nav-section-title">Dữ liệu & Báo cáo</li>
+        <li class="nav-item">
+          <a class="nav-link" id="nav-import" onclick="navigateTo('import')">
+            <i class="bi bi-file-earmark-arrow-up"></i>
+            <span>Import Excel</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="nav-reports" onclick="navigateTo('reports')">
+            <i class="bi bi-file-earmark-bar-graph"></i>
+            <span>Báo Cáo & Đối Soát</span>
+          </a>
+        </li>
+
+        <li class="nav-section-title">Hệ thống</li>
+        <li class="nav-item">
+          <a class="nav-link" id="nav-settings" onclick="navigateTo('settings')">
+            <i class="bi bi-sliders"></i>
+            <span>Cấu Hình & Bảng Giá</span>
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <main class="app-main">
+      <header class="app-header">
+        <div class="header-left">
+          <button class="menu-toggle-btn" type="button" onclick="toggleSidebar()">
+            <i class="bi bi-list"></i>
+          </button>
+          <span class="page-title d-none d-sm-inline">Hệ Thống Quản Lý Bãi Xe</span>
+        </div>
+
+        <div class="header-right">
+          <div class="user-profile-badge">
+            <div class="user-avatar" id="user-avatar-initial">A</div>
+            <div class="d-none d-md-block text-start">
+              <div class="fw-bold lh-1" id="user-display-name">Quản Trị Viên</div>
+              <small class="text-muted" id="user-role-tag">ADMIN</small>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="app-content">
+        <!-- Dashboard.html -->
+<div id="view-dashboard" class="view-section active">
+  <!-- Top Filter Bar -->
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+      <h4 class="fw-bold mb-1">Tổng Quan Vận Hành Bãi Xe</h4>
+      <p class="text-muted small mb-0">Theo dõi thời gian thực số lượng phương tiện vào/ra và tình trạng lưu bãi</p>
+    </div>
+    <div class="btn-group" role="group">
+      <button type="button" class="btn btn-outline-secondary btn-sm active" onclick="loadDashboardKPIs('TODAY', this)">Hôm nay</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="loadDashboardKPIs('YESTERDAY', this)">Hôm qua</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="loadDashboardKPIs('7DAYS', this)">7 ngày</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="loadDashboardKPIs('30DAYS', this)">30 ngày</button>
+    </div>
+  </div>
+
+  <!-- KPI Grid 7 chỉ số theo CLAUDE.md Section 35 -->
+  <div class="kpi-grid">
+    <!-- 1. Xe Nhập khẩu -->
+    <div class="kpi-card border-start border-primary border-4">
+      <div class="kpi-header">
+        <span>Nhập khẩu</span>
+        <div class="kpi-icon bg-primary-subtle text-primary"><i class="bi bi-box-arrow-in-down"></i></div>
+      </div>
+      <div class="kpi-value" id="kpi-import">0</div>
+      <div class="kpi-subtext">Xe đăng ký/vào bãi</div>
+    </div>
+
+    <!-- 2. Xe Xuất khẩu -->
+    <div class="kpi-card border-start border-purple border-4" style="border-left-color: #9333ea !important;">
+      <div class="kpi-header">
+        <span>Xuất khẩu</span>
+        <div class="kpi-icon bg-purple-subtle text-purple" style="background-color: #f3e8ff; color: #9333ea;"><i class="bi bi-box-arrow-up"></i></div>
+      </div>
+      <div class="kpi-value" id="kpi-export">0</div>
+      <div class="kpi-subtext">Xe đăng ký/vào bãi</div>
+    </div>
+
+    <!-- 3. Đang trong bãi -->
+    <div class="kpi-card border-start border-info border-4">
+      <div class="kpi-header">
+        <span>Đang trong bãi</span>
+        <div class="kpi-icon bg-info-subtle text-info"><i class="bi bi-truck"></i></div>
+      </div>
+      <div class="kpi-value text-primary" id="kpi-inyard">0</div>
+      <div class="kpi-subtext">Phương tiện lưu bãi</div>
+    </div>
+
+    <!-- 4. Chờ ra -->
+    <div class="kpi-card border-start border-warning border-4">
+      <div class="kpi-header">
+        <span>Chờ xuất bãi</span>
+        <div class="kpi-icon bg-warning-subtle text-warning"><i class="bi bi-hourglass-split"></i></div>
+      </div>
+      <div class="kpi-value text-warning" id="kpi-ready">0</div>
+      <div class="kpi-subtext">Đã duyệt Ready to Exit</div>
+    </div>
+
+    <!-- 5. Đã ra -->
+    <div class="kpi-card border-start border-success border-4">
+      <div class="kpi-header">
+        <span>Đã xuất bãi</span>
+        <div class="kpi-icon bg-success-subtle text-success"><i class="bi bi-check-circle"></i></div>
+      </div>
+      <div class="kpi-value text-success" id="kpi-completed">0</div>
+      <div class="kpi-subtext">Hoàn tất Gate Out</div>
+    </div>
+
+    <!-- 6. Quá 24 giờ -->
+    <div class="kpi-card border-start border-danger border-4">
+      <div class="kpi-header">
+        <span>Quá 24 giờ</span>
+        <div class="kpi-icon bg-danger-subtle text-danger"><i class="bi bi-exclamation-triangle"></i></div>
+      </div>
+      <div class="kpi-value text-danger" id="kpi-over24h">0</div>
+      <div class="kpi-subtext">Lưu bãi vượt 24h</div>
+    </div>
+
+    <!-- 7. Doanh thu -->
+    <div class="kpi-card border-start border-success border-4" style="border-left-color: #059669 !important;">
+      <div class="kpi-header">
+        <span>Doanh thu</span>
+        <div class="kpi-icon bg-success-subtle text-success"><i class="bi bi-cash-stack"></i></div>
+      </div>
+      <div class="kpi-value text-success" id="kpi-revenue" style="font-size: 1.4rem;">0 VNĐ</div>
+      <div class="kpi-subtext">Tổng tiền thu được</div>
+    </div>
+  </div>
+
+  <!-- Operational Overview & Quick Action Panels -->
+  <div class="row g-3 mb-4">
+    <!-- Chart / Activity Trend -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-3 p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0"><i class="bi bi-bar-chart-line me-2 text-primary"></i>Biến Động Xe Ra Vào 7 Ngày Gần Nhất</h6>
+          <span class="badge bg-light text-dark border">Thống kê ngày</span>
+        </div>
+        <div style="height: 250px; position: relative;">
+          <canvas id="dashboard-trend-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Shortcuts for Operators -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-3 p-3 h-100">
+        <h6 class="fw-bold mb-3"><i class="bi bi-lightning-charge me-2 text-warning"></i>Thao Tác Nhanh Theo Vị Trí</h6>
+        <div class="d-grid gap-2">
+          <button class="btn btn-outline-primary text-start p-2 d-flex align-items-center gap-2" onclick="navigateTo('gatein')">
+            <i class="bi bi-box-arrow-in-right fs-4"></i>
+            <div>
+              <div class="fw-bold">Cổng Vào (Gate In)</div>
+              <small class="text-muted">Tìm xe, duyệt vào & in phiếu QR</small>
+            </div>
+          </button>
+          <button class="btn btn-outline-warning text-dark text-start p-2 d-flex align-items-center gap-2" onclick="navigateTo('yard')">
+            <i class="bi bi-building fs-4"></i>
+            <div>
+              <div class="fw-bold">Trong Bãi (Yard)</div>
+              <small class="text-muted">Quản lý lưu bãi & duyệt chờ ra</small>
+            </div>
+          </button>
+          <button class="btn btn-outline-success text-start p-2 d-flex align-items-center gap-2" onclick="navigateTo('gateout')">
+            <i class="bi bi-box-arrow-right fs-4"></i>
+            <div>
+              <div class="fw-bold">Cổng Ra (Gate Out)</div>
+              <small class="text-muted">Quét phiếu, tính phí & cho xe ra</small>
+            </div>
+          </button>
+          <button class="btn btn-outline-secondary text-start p-2 d-flex align-items-center gap-2" onclick="navigateTo('import')">
+            <i class="bi bi-file-earmark-excel fs-4"></i>
+            <div>
+              <div class="fw-bold">Import Danh Sách Xe</div>
+              <small class="text-muted">Tải file Excel đăng ký xe từ nhà xe</small>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Vehicles In Yard -->
+  <div class="card border-0 shadow-sm rounded-3 p-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="fw-bold mb-0"><i class="bi bi-truck-front me-2 text-primary"></i>Xe Đang Trong Bãi Gần Đây</h6>
+      <button class="btn btn-sm btn-link text-decoration-none" onclick="navigateTo('yard')">Xem toàn bộ bãi &rarr;</button>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Biển Số</th>
+            <th>Loại Xe</th>
+            <th>Nghiệp Vụ</th>
+            <th>Container</th>
+            <th>Nhà Xe</th>
+            <th>Giờ Vào</th>
+            <th>Thời Gian Lưu</th>
+            <th>Trạng Thái</th>
+          </tr>
+        </thead>
+        <tbody id="dashboard-recent-yard-tbody">
+          <tr><td colspan="8" class="text-center py-3 text-muted">Đang tải dữ liệu xe trong bãi...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+        <!-- GateIn.html -->
+<div id="view-gatein" class="view-section">
+  <div class="row g-4">
+    <!-- Main Gate In Interaction Panel -->
+    <div class="col-lg-7">
+      <div class="action-card">
+        <div class="action-card-header">
+          <div class="action-card-title text-primary">
+            <i class="bi bi-box-arrow-in-right fs-4"></i>
+            <span>CỔNG VÀO (GATE IN)</span>
+          </div>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+            <i class="bi bi-shield-check me-1"></i>Kiểm soát cổng vào
+          </span>
+        </div>
+
+        <!-- Big Search Bar for Operator -->
+        <div class="search-operator-box">
+          <input type="text" id="gatein-plate-input" class="input-operator-plate" placeholder="NHẬP BIỂN SỐ XE (VD: 51C-12345)" autocomplete="off" onkeypress="if(event.key === 'Enter') searchGateInVehicle()">
+          <button class="btn-operator-search" type="button" onclick="searchGateInVehicle()">
+            <i class="bi bi-search"></i> TÌM XE
+          </button>
+        </div>
+
+        <!-- Vehicle Inspection Card (Hiển thị thông tin xe khi tìm thấy) -->
+        <div id="gatein-inspection-card" style="display: none;">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-uppercase fw-bold text-muted small">Thông Tin Xe Đăng Ký</span>
+            <span id="gatein-vehicle-status-badge" class="badge-status badge-REGISTERED">REGISTERED</span>
+          </div>
+
+          <div class="vehicle-info-grid">
+            <div>
+              <div class="info-item-label">Biển Số Xe</div>
+              <div class="info-item-value highlight" id="gatein-info-plate">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Loại Phương Tiện</div>
+              <div class="info-item-value" id="gatein-info-type">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Nghiệp Vụ</div>
+              <div class="info-item-value" id="gatein-info-direction">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Số Container</div>
+              <div class="info-item-value" id="gatein-info-container">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Trọng Lượng (kg)</div>
+              <div class="info-item-value" id="gatein-info-weight">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Đơn Vị / Nhà Xe</div>
+              <div class="info-item-value" id="gatein-info-company">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Tài Xế & SĐT</div>
+              <div class="info-item-value" id="gatein-info-driver">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Ngày Đăng Ký</div>
+              <div class="info-item-value" id="gatein-info-regdate">—</div>
+            </div>
+          </div>
+
+          <!-- Nút Duyệt Gate In kích thước lớn (CLAUDE.md Section 11, 41) -->
+          <div class="mt-3">
+            <button id="btn-gatein-approve" class="btn-gate-action btn-gate-in" type="button" onclick="confirmGateIn()">
+              <i class="bi bi-check2-circle fs-3"></i> DUYỆT CHO VÀO & TẠO PHIẾU
+            </button>
+          </div>
+        </div>
+
+        <!-- Placeholder khi chưa tìm xe -->
+        <div id="gatein-placeholder" class="text-center py-5 border rounded-3 bg-light text-muted">
+          <i class="bi bi-truck display-4 text-secondary mb-2"></i>
+          <p class="mb-0 fw-medium">Nhập biển số xe hoặc quét mã QR đăng ký phía trên để bắt đầu Gate In.</p>
+          <small class="text-muted">Nhân viên cổng đối chiếu biển số thực tế với hồ sơ đăng ký.</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick History & Re-print ticket panel -->
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm rounded-3 p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Xe Vừa Vào Bãi Gần Đây</h6>
+          <button class="btn btn-sm btn-outline-secondary" onclick="loadRecentGateIns()"><i class="bi bi-arrow-clockwise"></i></button>
+        </div>
+
+        <div class="table-responsive" style="max-height: 480px;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Số Vé</th>
+                <th>Biển Số</th>
+                <th>Giờ Vào</th>
+                <th>In Lại</th>
+              </tr>
+            </thead>
+            <tbody id="gatein-recent-tbody">
+              <tr><td colspan="4" class="text-center py-3 text-muted">Chưa có lượt xe nào vào bãi gần đây.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+        <!-- Yard.html -->
+<div id="view-yard" class="view-section">
+  <div class="card border-0 shadow-sm rounded-3 p-3 mb-3">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <div>
+        <h5 class="fw-bold mb-1 text-primary"><i class="bi bi-building me-2"></i>QUẢN LÝ XE TRONG BÃI (YARD)</h5>
+        <p class="text-muted small mb-0">Theo dõi phương tiện đang lưu bãi, thời gian lưu thực tế và duyệt cho phép xe chờ xuất bãi</p>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <button class="btn btn-outline-secondary btn-sm" onclick="loadVehiclesInYard()"><i class="bi bi-arrow-clockwise me-1"></i>Làm mới</button>
+      </div>
+    </div>
+
+    <!-- Filter & Search Toolbar -->
+    <div class="row g-2 align-items-center">
+      <!-- Search input -->
+      <div class="col-md-4">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" id="yard-search-input" class="form-control" placeholder="Tìm biển số, container, nhà xe..." onkeyup="filterYardTable()">
+        </div>
+      </div>
+      <!-- Filter Direction -->
+      <div class="col-md-3">
+        <select id="yard-filter-direction" class="form-select form-select-sm" onchange="filterYardTable()">
+          <option value="ALL">-- Tất cả chiều (Nhập/Xuất) --</option>
+          <option value="IMPORT">Xe Nhập Khẩu</option>
+          <option value="EXPORT">Xe Xuất Khẩu</option>
+        </select>
+      </div>
+      <!-- Filter Status -->
+      <div class="col-md-3">
+        <select id="yard-filter-status" class="form-select form-select-sm" onchange="filterYardTable()">
+          <option value="ALL">-- Tất cả trạng thái --</option>
+          <option value="IN_YARD">Đang ở trong bãi (IN_YARD)</option>
+          <option value="READY_TO_EXIT">Đã duyệt chờ ra (READY_TO_EXIT)</option>
+          <option value="OVER24H">Cảnh báo quá 24 giờ</option>
+        </select>
+      </div>
+      <!-- Total count badge -->
+      <div class="col-md-2 text-md-end">
+        <span class="badge bg-primary px-3 py-2 fs-6" id="yard-total-count">0 xe</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Yard Vehicle List Table -->
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Biển Số Xe</th>
+          <th>Số Container</th>
+          <th>Loại Xe</th>
+          <th>Nghiệp Vụ</th>
+          <th>Nhà Xe / Tài Xế</th>
+          <th>Số Vé</th>
+          <th>Giờ Vào Bãi</th>
+          <th>Thời Gian Lưu Bãi</th>
+          <th>Trạng Thái</th>
+          <th class="text-center">Thao Tác</th>
+        </tr>
+      </thead>
+      <tbody id="yard-vehicles-tbody">
+        <tr><td colspan="10" class="text-center py-4 text-muted">Đang tải danh sách phương tiện trong bãi...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+        <!-- GateOut.html -->
+<div id="view-gateout" class="view-section">
+  <div class="row g-4">
+    <!-- Main Gate Out Inspection & Checkout Panel -->
+    <div class="col-lg-7">
+      <div class="action-card">
+        <div class="action-card-header">
+          <div class="action-card-title text-success">
+            <i class="bi bi-box-arrow-right fs-4"></i>
+            <span>CỔNG RA (GATE OUT) & TÍNH PHÍ</span>
+          </div>
+          <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+            <i class="bi bi-shield-check me-1"></i>Kiểm soát cổng xuất bãi
+          </span>
+        </div>
+
+        <!-- Big Search / Scan Bar for Operator -->
+        <div class="search-operator-box">
+          <input type="text" id="gateout-search-input" class="input-operator-plate" placeholder="QUÉT MÃ QR HOẶC NHẬP SỐ VÉ / BIỂN SỐ" autocomplete="off" onkeypress="if(event.key === 'Enter') inspectGateOutTicket()">
+          <button class="btn-operator-search bg-success" type="button" onclick="inspectGateOutTicket()">
+            <i class="bi bi-qr-code-scan"></i> KIỂM TRA
+          </button>
+        </div>
+
+        <!-- Inspection Result & Fee Calculation Preview Card -->
+        <div id="gateout-inspection-card" style="display: none;">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-uppercase fw-bold text-muted small">Thông Tin Xác Thực & Chi Phí Lưu Bãi</span>
+            <span id="gateout-status-badge" class="badge-status badge-READY_TO_EXIT">READY_TO_EXIT</span>
+          </div>
+
+          <!-- Vehicle Info Summary -->
+          <div class="vehicle-info-grid mb-3">
+            <div>
+              <div class="info-item-label">Số Vé Vào Bãi</div>
+              <div class="info-item-value highlight text-primary" id="gateout-info-ticket">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Biển Số Trên Vé</div>
+              <div class="info-item-value highlight text-dark" id="gateout-info-plate">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Loại Phương Tiện</div>
+              <div class="info-item-value" id="gateout-info-type">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Số Container</div>
+              <div class="info-item-value" id="gateout-info-container">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Thời Điểm Vào Bãi</div>
+              <div class="info-item-value" id="gateout-info-intime">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Thời Điểm Ra Bãi (Dự kiến)</div>
+              <div class="info-item-value text-success" id="gateout-info-outtime">—</div>
+            </div>
+          </div>
+
+          <!-- Fee Calculation Box (CLAUDE.md Section 20-23) -->
+          <div class="card border-success border-2 bg-success-subtle bg-opacity-10 p-3 mb-3 rounded-3">
+            <div class="row text-center g-2">
+              <div class="col-4 border-end border-success-subtle">
+                <div class="text-muted small fw-semibold text-uppercase">Thời Gian Lưu Bãi</div>
+                <div class="fw-bold fs-6 text-dark" id="gateout-calc-duration">0 giờ 0 phút</div>
+              </div>
+              <div class="col-4 border-end border-success-subtle">
+                <div class="text-muted small fw-semibold text-uppercase">Số Ngày Tính Phí</div>
+                <div class="fw-bold fs-5 text-primary" id="gateout-calc-days">1 ngày</div>
+                <small class="text-muted" id="gateout-calc-unitprice">Đơn giá: 100.000đ/ngày</small>
+              </div>
+              <div class="col-4">
+                <div class="text-muted small fw-semibold text-uppercase">Tổng Phí Phải Thu</div>
+                <div class="fw-bolder fs-4 text-success" id="gateout-calc-total">100.000 VNĐ</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Đối chiếu biển số thực tế tại cổng (CLAUDE.md Section 17, 18) -->
+          <div class="mb-3">
+            <label class="form-label fw-bold text-dark small text-uppercase">
+              <i class="bi bi-camera me-1"></i>Đối Chiếu Biển Số Thực Tế Tại Cổng <span class="text-danger">*</span>
+            </label>
+            <input type="text" id="gateout-actual-plate" class="form-control form-control-lg fw-bold text-uppercase border-2" placeholder="Xác nhận biển số thực tế của xe trước cổng">
+            <div class="form-text small">Nhân viên nhìn biển số xe thực tế trước mặt cổng để đối chiếu với hồ sơ vé.</div>
+          </div>
+
+          <!-- Nút Duyệt Gate Out lớn -->
+          <div class="mt-3">
+            <button id="btn-gateout-approve" class="btn-gate-action btn-gate-out" type="button" onclick="confirmGateOut()">
+              <i class="bi bi-check2-all fs-3"></i> DUYỆT CHO XE RA & THU PHÍ
+            </button>
+          </div>
+        </div>
+
+        <!-- Placeholder khi chưa quét vé -->
+        <div id="gateout-placeholder" class="text-center py-5 border rounded-3 bg-light text-muted">
+          <i class="bi bi-qr-code display-4 text-secondary mb-2"></i>
+          <p class="mb-0 fw-medium">Quét mã QR trên phiếu của tài xế hoặc nhập số vé / biển số để kiểm tra.</p>
+          <small class="text-muted">Chỉ xe đã được nhân viên bãi duyệt <strong>READY_TO_EXIT</strong> mới được phép xuất bãi.</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danh sách Xe Được Phép Ra (READY_TO_EXIT) & Gọi loa (CLAUDE.md Section 17) -->
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm rounded-3 p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0 text-warning text-dark"><i class="bi bi-megaphone-fill me-2 text-warning"></i>Xe Được Phép Ra (Chờ Gọi)</h6>
+          <button class="btn btn-sm btn-outline-secondary" onclick="loadReadyToExitVehicles()"><i class="bi bi-arrow-clockwise"></i></button>
+        </div>
+
+        <div class="table-responsive" style="max-height: 480px;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Biển Số</th>
+                <th>Container</th>
+                <th>Thời Gian Lưu</th>
+                <th>Gọi Loa</th>
+                <th>Chọn</th>
+              </tr>
+            </thead>
+            <tbody id="gateout-ready-tbody">
+              <tr><td colspan="5" class="text-center py-3 text-muted">Không có xe nào đang chờ xuất bãi.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+        <!-- Import.html -->
+<div id="view-import" class="view-section">
+  <div class="row g-4">
+    <!-- Import Form & File Upload -->
+    <div class="col-lg-12">
+      <div class="card border-0 shadow-sm rounded-3 p-4 mb-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1 text-primary"><i class="bi bi-file-earmark-excel me-2"></i>IMPORT DANH SÁCH XE TỪ EXCEL</h5>
+            <p class="text-muted small mb-0">Quy trình bắt buộc: Tải file &rarr; Kiểm tra dữ liệu (Validate) &rarr; Xem trước (Preview) &rarr; Xác nhận Commit Database</p>
+          </div>
+          <button class="btn btn-outline-success btn-sm" onclick="downloadSampleExcel()">
+            <i class="bi bi-download me-1"></i> Tải Mẫu File Excel Chuẩn
+          </button>
+        </div>
+
+        <!-- Upload & Settings -->
+        <div class="row g-3 align-items-end mb-3">
+          <div class="col-md-5">
+            <label class="form-label fw-semibold small text-uppercase">Chọn file Excel (.xlsx, .xls, .csv) <span class="text-danger">*</span></label>
+            <input type="file" id="excel-file-input" class="form-control" accept=".xlsx, .xls, .csv" onchange="handleExcelFileSelect(this)">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small text-uppercase">Đơn Vị / Nhà Xe (Mặc định)</label>
+            <input type="text" id="import-company-input" class="form-control" placeholder="Tên đơn vị vận tải nếu file không có">
+          </div>
+          <div class="col-md-3">
+            <button id="btn-validate-excel" class="btn btn-primary w-100 fw-semibold" onclick="processExcelUpload()" disabled>
+              <i class="bi bi-search me-1"></i> Kiểm Tra Dữ Liệu
+            </button>
+          </div>
+        </div>
+
+        <!-- Validation Error Alert Box (CLAUDE.md Section 8) -->
+        <div id="import-error-container" class="alert alert-danger d-none mt-3" role="alert">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-exclamation-octagon-fill fs-5"></i>
+            <strong class="fs-6">IMPORT THẤT BẠI - PHÁT HIỆN LỖI DỮ LIỆU</strong>
+          </div>
+          <p class="small mb-2">Vui lòng sửa các lỗi sau trong file Excel trước khi tiếp tục:</p>
+          <div class="table-responsive bg-white rounded-2 border">
+            <table class="table table-sm table-striped mb-0 small">
+              <thead class="table-danger">
+                <tr>
+                  <th style="width: 80px;">Dòng</th>
+                  <th style="width: 150px;">Cột Lỗi</th>
+                  <th style="width: 180px;">Giá Trị Nhận Được</th>
+                  <th>Nội Dung Lỗi Chi Tiết</th>
+                </tr>
+              </thead>
+              <tbody id="import-error-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Preview & Confirm Box (CLAUDE.md Section 6, 8) -->
+        <div id="import-preview-container" class="card border-success border-2 bg-light p-3 d-none mt-3">
+          <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+            <div>
+              <span class="badge bg-success px-2 py-1 me-2"><i class="bi bi-check-circle me-1"></i>DỮ LIỆU HỢP LỆ</span>
+              <strong class="text-dark" id="import-preview-summary">0 dòng hợp lệ sẵn sàng import.</strong>
+            </div>
+            <button id="btn-confirm-import" class="btn btn-success fw-bold px-4" onclick="confirmCommitImport()">
+              <i class="bi bi-database-check me-1"></i> XÁC NHẬN IMPORT VÀO DATABASE
+            </button>
+          </div>
+
+          <div class="table-responsive bg-white rounded-2 border mt-2">
+            <table class="data-table small">
+              <thead>
+                <tr>
+                  <th>Biển Số</th>
+                  <th>Loại Xe</th>
+                  <th>Nghiệp Vụ</th>
+                  <th>Số Container</th>
+                  <th>Khối Lượng (kg)</th>
+                  <th>Nhà Xe</th>
+                  <th>Tài Xế</th>
+                  <th>Ngày Đăng Ký</th>
+                </tr>
+              </thead>
+              <tbody id="import-preview-tbody"></tbody>
+            </table>
+          </div>
+          <small class="text-muted mt-2 d-block">* Hiển thị xem trước tối đa 10 dòng đầu tiên.</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Batch History List (CLAUDE.md Section 9) -->
+    <div class="col-lg-12">
+      <div class="card border-0 shadow-sm rounded-3 p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Lịch Sử Các Đợt Import (IMPORT_BATCH)</h6>
+          <button class="btn btn-sm btn-outline-secondary" onclick="loadImportBatches()"><i class="bi bi-arrow-clockwise"></i> Làm mới</button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Mã Batch</th>
+                <th>Tên File</th>
+                <th>Nhà Xe</th>
+                <th>Thời Gian Import</th>
+                <th>Người Import</th>
+                <th>Tổng Dòng</th>
+                <th>Thành Công</th>
+                <th>Lỗi</th>
+                <th>Trạng Thái</th>
+              </tr>
+            </thead>
+            <tbody id="import-batches-tbody">
+              <tr><td colspan="9" class="text-center py-3 text-muted">Đang tải lịch sử import...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+        <!-- Reports.html -->
+<div id="view-reports" class="view-section">
+  <div class="card border-0 shadow-sm rounded-3 p-3 mb-3">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <div>
+        <h5 class="fw-bold mb-1 text-primary"><i class="bi bi-file-earmark-bar-graph me-2"></i>BÁO CÁO & ĐỐI SOÁT VẬN HÀNH</h5>
+        <p class="text-muted small mb-0">Tra cứu chi tiết xe đã xuất bãi, đối soát doanh thu và xuất báo cáo Excel</p>
+      </div>
+      <button class="btn btn-outline-success btn-sm" onclick="exportReportToExcel()">
+        <i class="bi bi-file-earmark-excel me-1"></i> Xuất File Excel
+      </button>
+    </div>
+
+    <!-- Filters Toolbar -->
+    <div class="row g-2 align-items-center">
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold text-muted mb-1">Nghiệp Vụ</label>
+        <select id="report-filter-direction" class="form-select form-select-sm" onchange="loadCompletedReport()">
+          <option value="ALL">-- Tất cả chiều --</option>
+          <option value="IMPORT">Nhập Khẩu</option>
+          <option value="EXPORT">Xuất Khẩu</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold text-muted mb-1">Loại Phương Tiện</label>
+        <select id="report-filter-vtype" class="form-select form-select-sm" onchange="loadCompletedReport()">
+          <option value="ALL">-- Tất cả loại xe --</option>
+          <option value="CONTAINER">Container</option>
+          <option value="TRUCK">Xe Tải</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold text-muted mb-1">Tìm Nhà Xe / Đơn Vị</label>
+        <input type="text" id="report-filter-company" class="form-control form-control-sm" placeholder="Tên nhà xe hoặc từ khóa..." onkeyup="loadCompletedReport()">
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary btn-sm w-100" onclick="loadCompletedReport()">
+          <i class="bi bi-filter me-1"></i> Lọc Dữ Liệu
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Cards for Filtered Report -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm p-3 bg-white text-center">
+        <div class="text-muted small text-uppercase fw-semibold">Tổng Lượt Xuất Bãi</div>
+        <div class="fs-4 fw-bold text-dark" id="report-sum-count">0 lượt</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm p-3 bg-white text-center">
+        <div class="text-muted small text-uppercase fw-semibold">Tổng Ngày Tính Phí</div>
+        <div class="fs-4 fw-bold text-primary" id="report-sum-days">0 ngày</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm p-3 bg-white text-center">
+        <div class="text-muted small text-uppercase fw-semibold">Tổng Doanh Thu Thu Được</div>
+        <div class="fs-4 fw-bold text-success" id="report-sum-revenue">0 VNĐ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Data Table -->
+  <div class="table-responsive">
+    <table class="data-table" id="report-table">
+      <thead>
+        <tr>
+          <th>Mã Phí</th>
+          <th>Biển Số Xe</th>
+          <th>Loại Xe</th>
+          <th>Nghiệp Vụ</th>
+          <th>Số Container</th>
+          <th>Nhà Xe</th>
+          <th>Giờ Vào</th>
+          <th>Giờ Ra</th>
+          <th>Thời Gian Lưu</th>
+          <th>Số Ngày</th>
+          <th>Đơn Giá</th>
+          <th>Thành Tiền</th>
+        </tr>
+      </thead>
+      <tbody id="report-completed-tbody">
+        <tr><td colspan="12" class="text-center py-4 text-muted">Đang tải dữ liệu báo cáo...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+        <!-- Settings.html -->
+<div id="view-settings" class="view-section">
+  <div class="row g-4">
+    <!-- Navigation Tabs for Settings Subsections -->
+    <div class="col-12">
+      <ul class="nav nav-pills border-bottom pb-2 gap-2" id="settings-tabs" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active px-3 py-2 fw-semibold" id="tab-prices" onclick="switchSettingsTab('prices')">
+            <i class="bi bi-tag me-1"></i> Bảng Giá Cấu Hình (PRICE_CONFIG)
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link px-3 py-2 fw-semibold" id="tab-users" onclick="switchSettingsTab('users')">
+            <i class="bi bi-people me-1"></i> Quản Lý Người Dùng (USERS)
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link px-3 py-2 fw-semibold" id="tab-audit" onclick="switchSettingsTab('audit')">
+            <i class="bi bi-shield-lock me-1"></i> Nhật Ký Hoạt Động (AUDIT_LOG)
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link px-3 py-2 fw-semibold" id="tab-system" onclick="switchSettingsTab('system')">
+            <i class="bi bi-gear me-1"></i> Khởi Tạo & Hệ Thống (DATABASE)
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 1. BẢNG GIÁ PRICE_CONFIG -->
+    <div class="col-12 settings-subview" id="settings-view-prices">
+      <div class="card border-0 shadow-sm rounded-3 p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h6 class="fw-bold mb-1">Cấu Hình Bảng Giá Lưu Bãi (PRICE_CONFIG)</h6>
+            <small class="text-muted">Đơn giá động theo ngày, tải trọng xe và loại phương tiện theo CLAUDE.md Section 22</small>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openAddPriceModal()">
+            <i class="bi bi-plus-circle me-1"></i> Thêm Mức Giá Mới
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Mã Giá</th>
+                <th>Loại Phương Tiện</th>
+                <th>Tải Trọng Tối Thiểu (kg)</th>
+                <th>Tải Trọng Tối Đa (kg)</th>
+                <th>Đơn Giá / Ngày (VNĐ)</th>
+                <th>Ngày Hiệu Lực</th>
+                <th>Trạng Thái</th>
+                <th class="text-center">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="settings-price-tbody">
+              <tr><td colspan="8" class="text-center py-3 text-muted">Đang tải bảng giá...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. QUẢN LÝ NGƯỜI DÙNG USERS -->
+    <div class="col-12 settings-subview d-none" id="settings-view-users">
+      <div class="card border-0 shadow-sm rounded-3 p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h6 class="fw-bold mb-1">Danh Sách Tài Khoản & Phân Quyền (USERS)</h6>
+            <small class="text-muted">Quản lý nhân viên vận hành và phân quyền các module theo CLAUDE.md Section 34</small>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openAddUserModal()">
+            <i class="bi bi-person-plus me-1"></i> Thêm Tài Khoản
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Mã User</th>
+                <th>Email Google</th>
+                <th>Họ Và Tên</th>
+                <th>Quyền Hạn (Role)</th>
+                <th>Trạng Thái</th>
+                <th>Ngày Tạo</th>
+                <th class="text-center">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="settings-users-tbody">
+              <tr><td colspan="7" class="text-center py-3 text-muted">Đang tải danh sách tài khoản...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. NHẬT KÝ AUDIT LOG -->
+    <div class="col-12 settings-subview d-none" id="settings-view-audit">
+      <div class="card border-0 shadow-sm rounded-3 p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h6 class="fw-bold mb-1">Nhật Ký Thao Tác Hệ Thống (AUDIT_LOG)</h6>
+            <small class="text-muted">Ghi nhận minh bạch mọi thao tác nghiệp vụ theo CLAUDE.md Section 33, 54</small>
+          </div>
+          <button class="btn btn-outline-secondary btn-sm" onclick="loadAuditLogs()"><i class="bi bi-arrow-clockwise"></i> Làm mới</button>
+        </div>
+
+        <div class="table-responsive" style="max-height: 500px;">
+          <table class="data-table small">
+            <thead>
+              <tr>
+                <th>Thời Gian</th>
+                <th>Người Thực Hiện</th>
+                <th>Hành Động</th>
+                <th>Đối Tượng</th>
+                <th>Mã Đối Tượng</th>
+                <th>Trạng Thái Cũ &rarr; Mới</th>
+                <th>Mô Tả Chi Tiết</th>
+              </tr>
+            </thead>
+            <tbody id="settings-audit-tbody">
+              <tr><td colspan="7" class="text-center py-3 text-muted">Đang tải nhật ký...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. KHỞI TẠO & HỆ THỐNG -->
+    <div class="col-12 settings-subview d-none" id="settings-view-system">
+      <div class="card border-0 shadow-sm rounded-3 p-4">
+        <h6 class="fw-bold text-danger mb-2"><i class="bi bi-database-gear me-2"></i>Khởi Tạo Cơ Sở Dữ Liệu Google Sheets</h6>
+        <p class="text-muted small mb-3">
+          Chức năng này sẽ quét và tự động tạo 10 Sheet tiêu chuẩn, thiết lập dòng tiêu đề (Headers) và nạp dữ liệu ban đầu (bảng giá, người dùng admin mặc định). Chức năng an toàn và bảo toàn dữ liệu hiện có.
+        </p>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-danger fw-semibold" onclick="triggerInitializeDatabase()">
+            <i class="bi bi-play-circle me-1"></i> Khởi Tạo / Cập Nhật Cấu Trúc Database
+          </button>
+        </div>
+
+        <hr class="my-4">
+
+        <h6 class="fw-bold mb-2"><i class="bi bi-info-circle me-2"></i>Thông Tin Hệ Thống</h6>
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item d-flex justify-content-between px-0">
+            <span class="text-muted">Múi Giờ Hệ Thống</span>
+            <span class="fw-bold">Asia/Ho_Chi_Minh (+07:00)</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0">
+            <span class="text-muted">Tiền Tố Số Vé</span>
+            <span class="fw-bold">BAI-YYYYMMDD-XXXXXX</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0">
+            <span class="text-muted">Quy Tắc Tính Phí</span>
+            <span class="fw-bold">CEILING(TotalHours / 24), tối thiểu 1 ngày</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0">
+            <span class="text-muted">Phiên Bản Ứng Dụng</span>
+            <span class="fw-bold">1.0.0 (Gas Web App)</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Components.html -->
+
+<!-- Modal: Xem & In Phiếu Vào Bãi Gate In (CLAUDE.md Section 14) -->
+<div class="modal fade" id="ticketModal" tabindex="-1" aria-labelledby="ticketModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-primary text-white py-2">
+        <h6 class="modal-title fw-bold" id="ticketModalLabel"><i class="bi bi-printer me-2"></i>PHIẾU VÀO BÃI (GATE IN TICKET)</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3">
+        <!-- Ticket Card Layout -->
+        <div class="ticket-receipt-card" id="modal-ticket-card">
+          <div class="ticket-header-title" id="t-company-name">BÃI XE CẢNG HÀNG HÓA XUẤT NHẬP KHẨU</div>
+          <div class="ticket-sub-title">PHIẾU VÀO BÃI (GATE IN)</div>
+
+          <div class="ticket-row">
+            <span class="ticket-row-label">Số vé:</span>
+            <span class="ticket-row-val text-primary" id="t-ticket-no">BAI-20261008-000125</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Biển số xe:</span>
+            <span class="ticket-row-val" id="t-plate">51C-12345</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Loại xe:</span>
+            <span class="ticket-row-val" id="t-type">CONTAINER</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Nghiệp vụ:</span>
+            <span class="ticket-row-val" id="t-direction">NHẬP KHẨU</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Số Container:</span>
+            <span class="ticket-row-val" id="t-container">MSCU1234567</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Đơn vị vận tải:</span>
+            <span class="ticket-row-val" id="t-company">ABC LOGISTICS</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Tài xế:</span>
+            <span class="ticket-row-val" id="t-driver">Nguyễn Văn A</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Giờ vào:</span>
+            <span class="ticket-row-val" id="t-intime">08/10/2026 08:35:21</span>
+          </div>
+
+          <!-- QR Code Canvas / Container -->
+          <div class="ticket-qr-container">
+            <div id="modal-ticket-qr"></div>
+          </div>
+
+          <div class="ticket-footer" id="t-note">
+            Vui lòng giữ phiếu cẩn thận để làm thủ tục xuất bãi tại cổng ra.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+        <button type="button" class="btn btn-primary fw-bold" onclick="printTicketFromModal()">
+          <i class="bi bi-printer-fill me-1"></i> IN PHIẾU NGAY (80mm / A4)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Biên Lai Xuất Bãi Gate Out & Thanh Toán -->
+<div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-success text-white py-2">
+        <h6 class="modal-title fw-bold" id="receiptModalLabel"><i class="bi bi-receipt me-2"></i>BIÊN LAI XUẤT BÃI (GATE OUT PASS)</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3">
+        <div class="ticket-receipt-card" id="modal-receipt-card">
+          <div class="ticket-header-title">BÃI XE CẢNG HÀNG HÓA XUẤT NHẬP KHẨU</div>
+          <div class="ticket-sub-title">BIÊN LAI THANH TOÁN & CHO PHÉP XUẤT BÃI</div>
+
+          <div class="ticket-row">
+            <span class="ticket-row-label">Số vé:</span>
+            <span class="ticket-row-val text-success" id="r-ticket-no">—</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Biển số xe:</span>
+            <span class="ticket-row-val" id="r-plate">—</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Loại xe:</span>
+            <span class="ticket-row-val" id="r-type">—</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Container:</span>
+            <span class="ticket-row-val" id="r-container">—</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Giờ vào:</span>
+            <span class="ticket-row-val" id="r-intime">—</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Giờ ra:</span>
+            <span class="ticket-row-val" id="r-outtime">—</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Thời gian lưu:</span>
+            <span class="ticket-row-val" id="r-duration">—</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Số ngày tính phí:</span>
+            <span class="ticket-row-val text-primary" id="r-days">—</span>
+          </div>
+          <div class="ticket-row border-top pt-1 mt-1">
+            <span class="ticket-row-label fw-bold">Tổng thanh toán:</span>
+            <span class="ticket-row-val text-success fs-6 fw-bold" id="r-total">—</span>
+          </div>
+          <div class="ticket-row">
+            <span class="ticket-row-label">Nhân viên cổng ra:</span>
+            <span class="ticket-row-val" id="r-outby">—</span>
+          </div>
+
+          <div class="ticket-footer">
+            Chúc quý khách vạn dặm bình an! Hẹn gặp lại.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+        <button type="button" class="btn btn-success fw-bold" onclick="printReceiptFromModal()">
+          <i class="bi bi-printer-fill me-1"></i> IN BIÊN LAI
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Thêm / Sửa Bảng Giá PRICE_CONFIG -->
+<div class="modal fade" id="priceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-bold" id="priceModalTitle">Thêm / Sửa Bảng Giá</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3">
+        <input type="hidden" id="p-id">
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Loại Phương Tiện <span class="text-danger">*</span></label>
+          <select id="p-vtype" class="form-select form-select-sm">
+            <option value="CONTAINER">CONTAINER</option>
+            <option value="TRUCK">TRUCK (Xe Tải)</option>
+          </select>
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Tải trọng từ (kg)</label>
+            <input type="number" id="p-minweight" class="form-control form-control-sm" placeholder="0">
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Đến tải trọng (kg)</label>
+            <input type="number" id="p-maxweight" class="form-control form-control-sm" placeholder="7000">
+          </div>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Đơn Giá / Ngày (VNĐ) <span class="text-danger">*</span></label>
+          <input type="number" id="p-amount" class="form-control form-control-sm" placeholder="100000">
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Trạng Thái</label>
+          <select id="p-status" class="form-select form-select-sm">
+            <option value="ACTIVE">ACTIVE (Hiệu lực)</option>
+            <option value="INACTIVE">INACTIVE (Hết hiệu lực)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-primary btn-sm fw-bold" onclick="savePriceFromModal()">Lưu Cấu Hình</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Thêm / Sửa Người Dùng USERS -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header py-2">
+        <h6 class="modal-title fw-bold" id="userModalTitle">Thêm / Sửa Tài Khoản</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3">
+        <input type="hidden" id="u-id">
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Email Google <span class="text-danger">*</span></label>
+          <input type="email" id="u-email" class="form-control form-control-sm" placeholder="nhanvien@congty.com">
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Họ Và Tên <span class="text-danger">*</span></label>
+          <input type="text" id="u-name" class="form-control form-control-sm" placeholder="Nguyễn Văn A">
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Quyền Hạn (Role) <span class="text-danger">*</span></label>
+          <select id="u-role" class="form-select form-select-sm">
+            <option value="ADMIN">ADMIN - Toàn quyền quản trị</option>
+            <option value="BAI">BAI - Nhân viên bãi & Import</option>
+            <option value="GATE_IN">GATE_IN - Nhân viên cổng vào</option>
+            <option value="YARD">YARD - Nhân viên bãi GetIn/GetOut</option>
+            <option value="GATE_OUT">GATE_OUT - Nhân viên cổng ra</option>
+          </select>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Trạng Thái</label>
+          <select id="u-status" class="form-select form-select-sm">
+            <option value="ACTIVE">ACTIVE (Đang hoạt động)</option>
+            <option value="INACTIVE">INACTIVE (Đã khóa)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-primary btn-sm fw-bold" onclick="saveUserFromModal()">Lưu Tài Khoản</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Khu vực dành riêng cho việc in (Thermal 80mm & A4) -->
+<div id="print-ticket-area"></div>
+
+
+  <!-- CDN JS Dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/davidshimjs-qrcodejs@0.0.2/qrcode.min.js"></script>
+
+  <!-- Scripts.html -->
+<script>
+/**
+ * Scripts.html
+ * Bộ điều khiển Client-side SPA cho Quản Lý Bãi Xe
+ * Tự động nhận diện: Chạy trên Google Apps Script (google.script.run) hoặc Chạy Local Mock
+ */
+
+// Global State
+const AppState = {
+  currentUser: { id: 'USR-ADMIN-001', name: 'Quản Trị Viên', email: 'admin@dtk.local', role: 'ADMIN' },
+  activeView: 'dashboard',
+  isGasEnvironment: (typeof google !== 'undefined' && google.script && google.script.run),
+  dashboardChart: null,
+  cachedInYardList: [],
+  selectedImportData: null,
+  currentInspectingGateIn: null
+};
+
+// ==========================================================================
+// 1. BACKEND API CLIENT ADAPTER (GAS vs MOCK)
+// ==========================================================================
+
+const Api = {
+  call: function(fnName, args) {
+    args = args || [];
+    return new Promise((resolve, reject) => {
+      if (AppState.isGasEnvironment) {
+        google.script.run
+          .withSuccessHandler(res => {
+            if (res && res.success === false) {
+              reject(res);
+            } else {
+              resolve(res);
+            }
+          })
+          .withFailureHandler(err => reject({ success: false, message: err.message || err }))
+          [fnName].apply(google.script.run, args);
+      } else {
+        // Standalone Local Mock Fallback
+        setTimeout(() => {
+          try {
+            const mockRes = MockBackend[fnName].apply(MockBackend, args);
+            if (mockRes && mockRes.success === false) {
+              reject(mockRes);
+            } else {
+              resolve(mockRes);
+            }
+          } catch (e) {
+            reject({ success: false, message: e.message });
+          }
+        }, 150);
+      }
+    });
+  }
+};
+
+// ==========================================================================
+// 2. INITIALIZATION & ROUTING
+// ==========================================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+  initApp();
+});
+
+function initApp() {
+  Api.call('apiGetInitialData')
+    .then(res => {
+      if (res && res.data && res.data.user) {
+        AppState.currentUser = res.data.user;
+        updateUserUI();
+      }
+      loadDashboardKPIs('TODAY');
+      loadRecentGateIns();
+    })
+    .catch(err => {
+      console.warn('Init fallback:', err);
+      updateUserUI();
+      loadDashboardKPIs('TODAY');
+    });
+}
+
+function updateUserUI() {
+  const u = AppState.currentUser;
+  const nameEl = document.getElementById('user-display-name');
+  const roleEl = document.getElementById('user-role-tag');
+  const avatarEl = document.getElementById('user-avatar-initial');
+  if (nameEl) nameEl.textContent = u.name || u.email;
+  if (roleEl) roleEl.textContent = u.role || 'USER';
+  if (avatarEl) avatarEl.textContent = (u.name || u.email || 'A').charAt(0).toUpperCase();
+}
+
+function navigateTo(viewName) {
+  AppState.activeView = viewName;
+  document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+
+  const targetView = document.getElementById('view-' + viewName);
+  if (targetView) targetView.classList.add('active');
+
+  const navItem = document.getElementById('nav-' + viewName);
+  if (navItem) navItem.classList.add('active');
+
+  // Đóng sidebar trên mobile nếu đang mở
+  toggleSidebar(false);
+
+  // Kích hoạt nạp dữ liệu view tương ứng
+  if (viewName === 'dashboard') loadDashboardKPIs('TODAY');
+  if (viewName === 'gatein') loadRecentGateIns();
+  if (viewName === 'yard') loadVehiclesInYard();
+  if (viewName === 'gateout') loadReadyToExitVehicles();
+  if (viewName === 'import') loadImportBatches();
+  if (viewName === 'reports') loadCompletedReport();
+  if (viewName === 'settings') switchSettingsTab('prices');
+}
+
+function toggleSidebar(forceState) {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (!sidebar) return;
+
+  const willShow = (forceState !== undefined) ? forceState : !sidebar.classList.contains('show');
+  if (willShow) {
+    sidebar.classList.add('show');
+    if (backdrop) backdrop.classList.add('show');
+  } else {
+    sidebar.classList.remove('show');
+    if (backdrop) backdrop.classList.remove('show');
+  }
+}
+
+// ==========================================================================
+// 3. DASHBOARD LOGIC
+// ==========================================================================
+
+function loadDashboardKPIs(period, btn) {
+  if (btn) {
+    const parent = btn.parentElement;
+    parent.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  Api.call('apiGetDashboardKPIs', [period])
+    .then(res => {
+      const d = res.data;
+      if (!d) return;
+
+      document.getElementById('kpi-import').textContent = d.importCount || 0;
+      document.getElementById('kpi-export').textContent = d.exportCount || 0;
+      document.getElementById('kpi-inyard').textContent = d.inYardCount || 0;
+      document.getElementById('kpi-ready').textContent = d.readyToExitCount || 0;
+      document.getElementById('kpi-completed').textContent = d.completedCount || 0;
+      document.getElementById('kpi-over24h').textContent = d.over24hCount || 0;
+      document.getElementById('kpi-revenue').textContent = d.revenueFormatted || '0 VNĐ';
+
+      renderDashboardChart(d.chartData || []);
+    })
+    .catch(err => console.error('Lỗi tải KPI:', err));
+
+  // Tải xe trong bãi gần đây cho Dashboard
+  Api.call('apiGetVehiclesInYard')
+    .then(res => {
+      const list = (res.data || []).slice(0, 5);
+      const tbody = document.getElementById('dashboard-recent-yard-tbody');
+      if (!tbody) return;
+
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-3 text-muted">Hiện không có xe trong bãi.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(v => `
+        <tr>
+          <td class="fw-bold">${v.licensePlate}</td>
+          <td><span class="badge bg-light text-dark border">${v.vehicleType}</span></td>
+          <td><span class="badge-dir-${String(v.cargoDirection).toLowerCase()}">${v.cargoDirection}</span></td>
+          <td>${v.containerNo || '—'}</td>
+          <td>${v.company || '—'}</td>
+          <td>${v.inYardTime || '—'}</td>
+          <td>
+            <span class="fw-semibold">${v.durationFormatted}</span>
+            ${v.isOver24h ? '<span class="badge-over24h ms-1"><i class="bi bi-clock-history"></i> Quá 24h</span>' : ''}
+          </td>
+          <td><span class="badge-status badge-${v.status}">${v.status}</span></td>
+        </tr>
+      `).join('');
+    });
+}
+
+function renderDashboardChart(chartData) {
+  const ctx = document.getElementById('dashboard-trend-chart');
+  if (!ctx) return;
+
+  const labels = chartData.map(c => c.date);
+  const imports = chartData.map(c => c.importCount);
+  const exports = chartData.map(c => c.exportCount);
+
+  if (AppState.dashboardChart) {
+    AppState.dashboardChart.destroy();
+  }
+
+  AppState.dashboardChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Nhập khẩu',
+          data: imports,
+          backgroundColor: '#2563eb',
+          borderRadius: 4
+        },
+        {
+          label: 'Xuất khẩu',
+          data: exports,
+          backgroundColor: '#9333ea',
+          borderRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', align: 'end' }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0 } }
+      }
+    }
+  });
+}
+
+// ==========================================================================
+// 4. GATE IN LOGIC
+// ==========================================================================
+
+function searchGateInVehicle() {
+  const input = document.getElementById('gatein-plate-input');
+  const plate = input.value.trim();
+  if (!plate) {
+    Swal.fire({ icon: 'warning', title: 'Chưa nhập biển số', text: 'Vui lòng nhập biển số xe trước khi tìm.' });
+    return;
+  }
+
+  Api.call('apiSearchGateIn', [plate])
+    .then(res => {
+      const v = res.data;
+      AppState.currentInspectingGateIn = v;
+
+      document.getElementById('gatein-placeholder').style.display = 'none';
+      document.getElementById('gatein-inspection-card').style.display = 'block';
+
+      document.getElementById('gatein-info-plate').textContent = v.LicensePlate;
+      document.getElementById('gatein-info-type').textContent = v.VehicleType;
+      document.getElementById('gatein-info-direction').textContent = v.CargoDirection;
+      document.getElementById('gatein-info-container').textContent = v.ContainerNo || '—';
+      document.getElementById('gatein-info-weight').textContent = v.WeightKg ? (Number(v.WeightKg).toLocaleString() + ' kg') : '—';
+      document.getElementById('gatein-info-company').textContent = v.Company || '—';
+      document.getElementById('gatein-info-driver').textContent = (v.DriverName || '—') + (v.DriverPhone ? (' (' + v.DriverPhone + ')') : '');
+      document.getElementById('gatein-info-regdate').textContent = v.RegistrationDate || '—';
+
+      const statusBadge = document.getElementById('gatein-vehicle-status-badge');
+      statusBadge.className = 'badge-status badge-' + v.Status;
+      statusBadge.textContent = v.Status;
+    })
+    .catch(err => {
+      Swal.fire({ icon: 'error', title: 'Không tìm thấy xe', text: err.message || 'Biển số chưa được đăng ký hoặc không hợp lệ.' });
+    });
+}
+
+function confirmGateIn() {
+  const v = AppState.currentInspectingGateIn;
+  if (!v || !v.VehicleID) return;
+
+  Swal.fire({
+    title: 'Xác nhận Gate In?',
+    html: `Cho phép xe <strong>${v.LicensePlate}</strong> vào bãi và tạo phiếu?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#2563eb',
+    confirmButtonText: 'Đồng ý cho vào',
+    cancelButtonText: 'Hủy'
+  }).then(result => {
+    if (result.isConfirmed) {
+      Api.call('apiApproveGateIn', [v.VehicleID, ''])
+        .then(res => {
+          Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Xe đã được duyệt vào bãi thành công.' });
+          
+          // Reset view tìm xe
+          document.getElementById('gatein-plate-input').value = '';
+          document.getElementById('gatein-inspection-card').style.display = 'none';
+          document.getElementById('gatein-placeholder').style.display = 'block';
+
+          loadRecentGateIns();
+
+          // Hiển thị phiếu in ngay lập tức
+          if (res.data && res.data.ticket) {
+            showTicketModal(res.data.ticket);
+          }
+        })
+        .catch(err => {
+          Swal.fire({ icon: 'error', title: 'Lỗi Gate In', text: err.message });
+        });
+    }
+  });
+}
+
+function loadRecentGateIns() {
+  Api.call('apiGetVehiclesInYard')
+    .then(res => {
+      const list = (res.data || []).slice(0, 10);
+      const tbody = document.getElementById('gatein-recent-tbody');
+      if (!tbody) return;
+
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">Chưa có lượt xe vào bãi gần đây.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(item => `
+        <tr>
+          <td class="fw-bold text-primary">${item.ticketNo}</td>
+          <td class="fw-bold">${item.licensePlate}</td>
+          <td>${item.inYardTime}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary" onclick="reprintTicket('${item.ticketNo}')">
+              <i class="bi bi-printer"></i> In
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    });
+}
+
+function showTicketModal(ticket) {
+  document.getElementById('t-ticket-no').textContent = ticket.ticketNo;
+  document.getElementById('t-plate').textContent = ticket.licensePlate;
+  document.getElementById('t-type').textContent = ticket.vehicleType;
+  document.getElementById('t-direction').textContent = ticket.cargoDirection;
+  document.getElementById('t-container').textContent = ticket.containerNo || '—';
+  document.getElementById('t-company').textContent = ticket.company || '—';
+  document.getElementById('t-driver').textContent = ticket.driverName || '—';
+  document.getElementById('t-intime').textContent = ticket.gateInTime;
+
+  // Tạo mã QR Code
+  const qrContainer = document.getElementById('modal-ticket-qr');
+  qrContainer.innerHTML = '';
+  new QRCode(qrContainer, {
+    text: ticket.qrPayload || ticket.ticketNo,
+    width: 130,
+    height: 130,
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  const modal = new bootstrap.Modal(document.getElementById('ticketModal'));
+  modal.show();
+}
+
+function reprintTicket(ticketNo) {
+  Api.call('apiGetTicketReprint', [ticketNo])
+    .then(res => {
+      if (res.data) showTicketModal(res.data);
+    })
+    .catch(err => Swal.fire({ icon: 'error', title: 'Lỗi', text: err.message }));
+}
+
+function printTicketFromModal() {
+  const cardContent = document.getElementById('modal-ticket-card').innerHTML;
+  const printArea = document.getElementById('print-ticket-area');
+  printArea.innerHTML = cardContent;
+  window.print();
+}
+
+// ==========================================================================
+// 5. YARD MANAGEMENT LOGIC
+// ==========================================================================
+
+function loadVehiclesInYard() {
+  Api.call('apiGetVehiclesInYard')
+    .then(res => {
+      AppState.cachedInYardList = res.data || [];
+      filterYardTable();
+    })
+    .catch(err => console.error('Lỗi nạp xe trong bãi:', err));
+}
+
+function filterYardTable() {
+  const keyword = (document.getElementById('yard-search-input').value || '').trim().toLowerCase();
+  const dirFilter = document.getElementById('yard-filter-direction').value;
+  const statusFilter = document.getElementById('yard-filter-status').value;
+
+  let list = AppState.cachedInYardList;
+
+  if (dirFilter !== 'ALL') {
+    list = list.filter(v => v.cargoDirection === dirFilter);
+  }
+  if (statusFilter !== 'ALL') {
+    if (statusFilter === 'OVER24H') {
+      list = list.filter(v => v.isOver24h);
+    } else {
+      list = list.filter(v => v.status === statusFilter);
+    }
+  }
+  if (keyword) {
+    list = list.filter(v => {
+      return (
+        String(v.licensePlate).toLowerCase().includes(keyword) ||
+        String(v.containerNo).toLowerCase().includes(keyword) ||
+        String(v.company).toLowerCase().includes(keyword) ||
+        String(v.ticketNo).toLowerCase().includes(keyword)
+      );
+    });
+  }
+
+  document.getElementById('yard-total-count').textContent = list.length + ' xe';
+
+  const tbody = document.getElementById('yard-vehicles-tbody');
+  if (list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted">Không tìm thấy phương tiện nào phù hợp với bộ lọc.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(v => {
+    const isReady = (v.status === 'READY_TO_EXIT');
+    return `
+      <tr>
+        <td class="fw-bold">${v.licensePlate}</td>
+        <td>${v.containerNo || '—'}</td>
+        <td><span class="badge bg-light text-dark border">${v.vehicleType}</span></td>
+        <td><span class="badge-dir-${String(v.cargoDirection).toLowerCase()}">${v.cargoDirection}</span></td>
+        <td>${v.company || '—'}</td>
+        <td class="fw-semibold text-primary">${v.ticketNo}</td>
+        <td>${v.inYardTime}</td>
+        <td>
+          <span class="fw-bold">${v.durationFormatted}</span>
+          ${v.isOver24h ? '<span class="badge-over24h ms-1"><i class="bi bi-clock-history"></i> Quá 24h</span>' : ''}
+        </td>
+        <td><span class="badge-status badge-${v.status}">${v.status}</span></td>
+        <td class="text-center">
+          ${isReady ? 
+            `<span class="text-success small fw-bold"><i class="bi bi-check-all"></i> Đã duyệt chờ ra</span>` :
+            `<button class="btn btn-sm btn-warning text-dark fw-bold px-2 py-1 shadow-sm" onclick="approveReadyToExit('${v.vehicleId}', '${v.licensePlate}')">
+              <i class="bi bi-box-arrow-up-right me-1"></i> Duyệt Chờ Ra
+             </button>`
+          }
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function approveReadyToExit(vehicleId, plate) {
+  Swal.fire({
+    title: 'Duyệt chờ xuất bãi?',
+    html: `Xác nhận xe <strong>${plate}</strong> đã xong thủ tục bãi và cho phép ra cổng?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#d97706',
+    confirmButtonText: 'Duyệt Ready To Exit',
+    cancelButtonText: 'Đóng'
+  }).then(result => {
+    if (result.isConfirmed) {
+      Api.call('apiApproveReadyToExit', [vehicleId])
+        .then(res => {
+          Swal.fire({ icon: 'success', title: 'Thành công', text: res.message });
+          loadVehiclesInYard();
+        })
+        .catch(err => Swal.fire({ icon: 'error', title: 'Lỗi', text: err.message }));
+    }
+  });
+}
+
+// ==========================================================================
+// 6. GATE OUT & CALLOUT LOGIC
+// ==========================================================================
+
+function loadReadyToExitVehicles() {
+  Api.call('apiGetReadyToExitVehicles')
+    .then(res => {
+      const list = res.data || [];
+      const tbody = document.getElementById('gateout-ready-tbody');
+      if (!tbody) return;
+
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">Không có xe nào đang chờ xuất bãi.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(item => `
+        <tr>
+          <td class="fw-bold">${item.licensePlate}</td>
+          <td>${item.containerNo || '—'}</td>
+          <td class="small">${item.durationFormatted}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-warning text-dark" onclick="callVehicleBySpeaker('${item.licensePlate}')" title="Phát loa gọi xe">
+              <i class="bi bi-megaphone-fill"></i> Gọi Loa
+            </button>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-success fw-bold" onclick="selectReadyVehicleForOut('${item.ticketNo}', '${item.licensePlate}')">
+              Chọn
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    });
+}
+
+function callVehicleBySpeaker(plate) {
+  const speechText = `Xin mời xe biển số ${plate.split('').join(' ')} di chuyển ra cổng xuất bãi!`;
+  if ('speechSynthesis' in window) {
+    const utterance = new SpeechSynthesisUtterance(speechText);
+    utterance.lang = 'vi-VN';
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'info',
+      title: 'Đang phát loa: ' + speechText,
+      showConfirmButton: false,
+      timer: 3000
+    });
+  } else {
+    Swal.fire({ icon: 'info', title: 'Gọi xe bằng loa', text: speechText });
+  }
+}
+
+function selectReadyVehicleForOut(ticketNo, plate) {
+  document.getElementById('gateout-search-input').value = ticketNo;
+  inspectGateOutTicket();
+}
+
+function inspectGateOutTicket() {
+  const input = document.getElementById('gateout-search-input');
+  const searchKey = input.value.trim();
+  if (!searchKey) {
+    Swal.fire({ icon: 'warning', title: 'Chưa nhập thông tin', text: 'Vui lòng quét QR hoặc nhập số vé / biển số.' });
+    return;
+  }
+
+  Api.call('apiInspectGateOut', [searchKey])
+    .then(res => {
+      const d = res.data;
+      const v = d.vehicle;
+      const gi = d.gateIn;
+      const fee = d.previewFee;
+
+      AppState.currentInspectingGateOut = { vehicle: v, gateIn: gi, fee: fee };
+
+      document.getElementById('gateout-placeholder').style.display = 'none';
+      document.getElementById('gateout-inspection-card').style.display = 'block';
+
+      document.getElementById('gateout-info-ticket').textContent = gi.TicketNo;
+      document.getElementById('gateout-info-plate').textContent = v.LicensePlate;
+      document.getElementById('gateout-info-type').textContent = v.VehicleType;
+      document.getElementById('gateout-info-container').textContent = v.ContainerNo || '—';
+      document.getElementById('gateout-info-intime').textContent = gi.GateInTime;
+      document.getElementById('gateout-info-outtime').textContent = d.inspectTime;
+
+      document.getElementById('gateout-calc-duration').textContent = fee.formattedDuration;
+      document.getElementById('gateout-calc-days').textContent = fee.chargeDays + ' ngày';
+      document.getElementById('gateout-calc-unitprice').textContent = 'Đơn giá: ' + fee.formattedUnitPrice + '/ngày';
+      document.getElementById('gateout-calc-total').textContent = fee.formattedTotalAmount;
+
+      document.getElementById('gateout-actual-plate').value = v.LicensePlate; // Tự động điền gợi ý để đối chiếu nhanh
+    })
+    .catch(err => {
+      Swal.fire({ icon: 'error', title: 'Từ chối Gate Out', text: err.message });
+    });
+}
+
+function confirmGateOut() {
+  const info = AppState.currentInspectingGateOut;
+  if (!info || !info.gateIn) return;
+
+  const actualPlate = document.getElementById('gateout-actual-plate').value.trim();
+  if (!actualPlate) {
+    Swal.fire({ icon: 'warning', title: 'Thiếu biển số thực tế', text: 'Nhân viên bắt buộc nhập đối chiếu biển số thực tế trước cổng.' });
+    return;
+  }
+
+  Swal.fire({
+    title: 'Xác nhận Gate Out?',
+    html: `Duyệt cho xe <strong>${info.vehicle.LicensePlate}</strong> ra bãi và thu phí <strong>${info.fee.formattedTotalAmount}</strong>?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#16a34a',
+    confirmButtonText: 'Đồng ý cho ra & Thu phí',
+    cancelButtonText: 'Hủy'
+  }).then(result => {
+    if (result.isConfirmed) {
+      Api.call('apiApproveGateOut', [info.gateIn.TicketNo, actualPlate])
+        .then(res => {
+          Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Xe đã xuất bãi thành công.' });
+          
+          document.getElementById('gateout-search-input').value = '';
+          document.getElementById('gateout-inspection-card').style.display = 'none';
+          document.getElementById('gateout-placeholder').style.display = 'block';
+
+          loadReadyToExitVehicles();
+
+          // Hiển thị biên lai xuất bãi
+          if (res.data) showReceiptModal(res.data);
+        })
+        .catch(err => {
+          Swal.fire({ icon: 'error', title: 'Lỗi Gate Out', text: err.message });
+        });
+    }
+  });
+}
+
+function showReceiptModal(receipt) {
+  document.getElementById('r-ticket-no').textContent = receipt.ticketNo;
+  document.getElementById('r-plate').textContent = receipt.licensePlate;
+  document.getElementById('r-type').textContent = receipt.vehicleType;
+  document.getElementById('r-container').textContent = receipt.containerNo || '—';
+  document.getElementById('r-intime').textContent = receipt.gateInTime;
+  document.getElementById('r-outtime').textContent = receipt.gateOutTime;
+  document.getElementById('r-duration').textContent = receipt.duration;
+  document.getElementById('r-days').textContent = receipt.chargeDays + ' ngày';
+  document.getElementById('r-total').textContent = receipt.formattedTotalAmount;
+  document.getElementById('r-outby').textContent = receipt.gateOutBy;
+
+  const modal = new bootstrap.Modal(document.getElementById('receiptModal'));
+  modal.show();
+}
+
+function printReceiptFromModal() {
+  const cardContent = document.getElementById('modal-receipt-card').innerHTML;
+  const printArea = document.getElementById('print-ticket-area');
+  printArea.innerHTML = cardContent;
+  window.print();
+}
+
+// ==========================================================================
+// 7. EXCEL IMPORT LOGIC
+// ==========================================================================
+
+function handleExcelFileSelect(input) {
+  const btn = document.getElementById('btn-validate-excel');
+  if (input.files && input.files.length > 0) {
+    btn.disabled = false;
+  } else {
+    btn.disabled = true;
+  }
+}
+
+function processExcelUpload() {
+  const fileInput = document.getElementById('excel-file-input');
+  const companyInput = document.getElementById('import-company-input').value.trim();
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const jsonRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+      Api.call('apiValidateImport', [jsonRows, file.name, companyInput])
+        .then(res => {
+          const previewCard = document.getElementById('import-preview-container');
+          const errorCard = document.getElementById('import-error-container');
+
+          if (!res.success) {
+            // Hiển thị lỗi theo CLAUDE.md Section 8
+            previewCard.classList.add('d-none');
+            errorCard.classList.remove('d-none');
+
+            const tbody = document.getElementById('import-error-tbody');
+            tbody.innerHTML = (res.errors || []).map(err => `
+              <tr>
+                <td class="fw-bold text-danger">Dòng ${err.row}</td>
+                <td class="fw-semibold">${err.column}</td>
+                <td><code>${err.value || '(Trống)'}</code></td>
+                <td>${err.message}</td>
+              </tr>
+            `).join('');
+          } else {
+            // Thành công - Hiển thị preview
+            errorCard.classList.add('d-none');
+            previewCard.classList.remove('d-none');
+
+            AppState.selectedImportData = res;
+            document.getElementById('import-preview-summary').textContent = `${res.validRowsCount} phương tiện hợp lệ sẵn sàng import.`;
+
+            const tbody = document.getElementById('import-preview-tbody');
+            tbody.innerHTML = (res.previewData || []).map(r => `
+              <tr>
+                <td class="fw-bold">${r.LicensePlate}</td>
+                <td>${r.VehicleType}</td>
+                <td><span class="badge-dir-${String(r.CargoDirection).toLowerCase()}">${r.CargoDirection}</span></td>
+                <td>${r.ContainerNo || '—'}</td>
+                <td>${r.WeightKg ? (Number(r.WeightKg).toLocaleString() + ' kg') : '—'}</td>
+                <td>${r.Company}</td>
+                <td>${r.DriverName || '—'}</td>
+                <td>${r.RegistrationDate}</td>
+              </tr>
+            `).join('');
+          }
+        })
+        .catch(err => {
+          Swal.fire({ icon: 'error', title: 'Lỗi đọc file', text: err.message });
+        });
+    } catch (ex) {
+      Swal.fire({ icon: 'error', title: 'Lỗi parse file Excel', text: ex.message });
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function confirmCommitImport() {
+  const batchData = AppState.selectedImportData;
+  if (!batchData || !batchData.batchId) return;
+
+  Swal.fire({
+    title: 'Xác nhận Import vào Database?',
+    text: `Ghi nhận ${batchData.validRowsCount} phương tiện vào hệ thống. Thao tác không thể hoàn tác.`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#16a34a',
+    confirmButtonText: 'Đồng ý Import',
+    cancelButtonText: 'Hủy'
+  }).then(result => {
+    if (result.isConfirmed) {
+      Api.call('apiCommitImport', [batchData])
+        .then(res => {
+          Swal.fire({ icon: 'success', title: 'Thành công!', text: res.message });
+          document.getElementById('excel-file-input').value = '';
+          document.getElementById('import-preview-container').classList.add('d-none');
+          document.getElementById('btn-validate-excel').disabled = true;
+          AppState.selectedImportData = null;
+          loadImportBatches();
+        })
+        .catch(err => Swal.fire({ icon: 'error', title: 'Lỗi Import', text: err.message }));
+    }
+  });
+}
+
+function loadImportBatches() {
+  Api.call('apiGetImportBatches')
+    .then(res => {
+      const list = res.data || [];
+      const tbody = document.getElementById('import-batches-tbody');
+      if (!tbody) return;
+
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-3 text-muted">Chưa có đợt import nào.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(b => `
+        <tr>
+          <td class="fw-bold text-primary">${b.BatchID}</td>
+          <td>${b.FileName}</td>
+          <td>${b.Company || '—'}</td>
+          <td>${b.ImportTime}</td>
+          <td>${b.ImportBy}</td>
+          <td>${b.TotalRows}</td>
+          <td class="text-success fw-bold">${b.SuccessRows}</td>
+          <td class="text-danger fw-bold">${b.ErrorRows}</td>
+          <td><span class="badge bg-success">${b.Status}</span></td>
+        </tr>
+      `).join('');
+    });
+}
+
+function downloadSampleExcel() {
+  const sampleData = [
+    {
+      VehicleType: 'CONTAINER',
+      CargoDirection: 'IMPORT',
+      LicensePlate: '51C-12345',
+      ContainerNo: 'MSCU1234567',
+      WeightKg: 28000,
+      Company: 'ABC LOGISTICS',
+      DriverName: 'Nguyễn Văn A',
+      DriverPhone: '0901234567',
+      RegistrationDate: '08/10/2026',
+      Note: 'Hàng điện tử nhập cảng'
+    },
+    {
+      VehicleType: 'TRUCK',
+      CargoDirection: 'EXPORT',
+      LicensePlate: '29C-67890',
+      ContainerNo: '',
+      WeightKg: 6500,
+      Company: 'VẬN TẢI THÀNH PHÁT',
+      DriverName: 'Trần Văn B',
+      DriverPhone: '0912345678',
+      RegistrationDate: '08/10/2026',
+      Note: 'Xe tải dưới 7 tấn'
+    },
+    {
+      VehicleType: 'TRUCK',
+      CargoDirection: 'IMPORT',
+      LicensePlate: '60C-99988',
+      ContainerNo: '',
+      WeightKg: 12000,
+      Company: 'ĐỒNG NAI TRANS',
+      DriverName: 'Lê Văn C',
+      DriverPhone: '0988776655',
+      RegistrationDate: '08/10/2026',
+      Note: 'Xe tải trên 7 tấn'
+    }
+  ];
+
+  const ws = XLSX.utils.json_to_sheet(sampleData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'MauDangKyXe');
+  XLSX.writeFile(wb, 'Mau_Dang_Ky_Xe_Vao_Bai.xlsx');
+}
+
+// ==========================================================================
+// 8. REPORTS LOGIC
+// ==========================================================================
+
+function loadCompletedReport() {
+  const dirFilter = document.getElementById('report-filter-direction').value;
+  const vtypeFilter = document.getElementById('report-filter-vtype').value;
+  const companyFilter = (document.getElementById('report-filter-company').value || '').trim();
+
+  Api.call('apiGetCompletedReport', [{ cargoDirection: dirFilter, vehicleType: vtypeFilter, company: companyFilter }])
+    .then(res => {
+      const list = res.data || [];
+      const tbody = document.getElementById('report-completed-tbody');
+      if (!tbody) return;
+
+      const totalDays = list.reduce((s, i) => s + (Number(i.chargeDays) || 0), 0);
+      const totalRev = list.reduce((s, i) => s + (Number(i.totalAmount) || 0), 0);
+
+      document.getElementById('report-sum-count').textContent = list.length + ' lượt';
+      document.getElementById('report-sum-days').textContent = totalDays + ' ngày';
+      document.getElementById('report-sum-revenue').textContent = totalRev.toLocaleString('vi-VN') + ' VNĐ';
+
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" class="text-center py-4 text-muted">Không có dữ liệu phù hợp với bộ lọc.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(item => `
+        <tr>
+          <td class="small text-muted">${item.feeId}</td>
+          <td class="fw-bold">${item.licensePlate}</td>
+          <td><span class="badge bg-light text-dark border">${item.vehicleType}</span></td>
+          <td><span class="badge-dir-${String(item.cargoDirection).toLowerCase()}">${item.cargoDirection}</span></td>
+          <td>${item.containerNo || '—'}</td>
+          <td>${item.company || '—'}</td>
+          <td class="small">${item.gateInTime}</td>
+          <td class="small">${item.gateOutTime}</td>
+          <td class="small">${item.totalHours ? (item.totalHours + ' giờ') : '—'}</td>
+          <td class="fw-bold text-primary">${item.chargeDays}</td>
+          <td>${Number(item.unitPrice).toLocaleString()} đ</td>
+          <td class="fw-bold text-success">${item.formattedTotalAmount}</td>
+        </tr>
+      `).join('');
+    });
+}
+
+function exportReportToExcel() {
+  const table = document.getElementById('report-table');
+  const wb = XLSX.utils.table_to_book(table, { sheet: 'BaoCaoDoanhThu' });
+  XLSX.writeFile(wb, 'Bao_Cao_Xe_Xuat_Bai.xlsx');
+}
+
+// ==========================================================================
+// 9. SETTINGS & SYSTEM CONFIG
+// ==========================================================================
+
+function switchSettingsTab(tabName) {
+  document.querySelectorAll('#settings-tabs .nav-link').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.settings-subview').forEach(view => view.classList.add('d-none'));
+
+  const tabBtn = document.getElementById('tab-' + tabName);
+  if (tabBtn) tabBtn.classList.add('active');
+
+  const targetView = document.getElementById('settings-view-' + tabName);
+  if (targetView) targetView.classList.remove('d-none');
+
+  if (tabName === 'prices') loadPriceConfigs();
+  if (tabName === 'users') loadUsers();
+  if (tabName === 'audit') loadAuditLogs();
+}
+
+function loadPriceConfigs() {
+  Api.call('apiGetPriceConfigs')
+    .then(res => {
+      const list = res.data || [];
+      const tbody = document.getElementById('settings-price-tbody');
+      if (!tbody) return;
+
+      tbody.innerHTML = list.map(p => `
+        <tr>
+          <td class="fw-semibold">${p.PriceID}</td>
+          <td><span class="badge bg-light text-dark border">${p.VehicleType}</span></td>
+          <td>${p.MinWeightKg !== '' && p.MinWeightKg !== null ? (p.MinWeightKg + ' kg') : 'Không giới hạn'}</td>
+          <td>${p.MaxWeightKg !== '' && p.MaxWeightKg !== null ? (p.MaxWeightKg + ' kg') : 'Không giới hạn'}</td>
+          <td class="fw-bold text-success">${Number(p.PricePerDay).toLocaleString()} VNĐ</td>
+          <td>${p.EffectiveDate || '—'}</td>
+          <td><span class="badge bg-${p.Status === 'ACTIVE' ? 'success' : 'secondary'}">${p.Status}</span></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-primary" onclick='openEditPriceModal(${JSON.stringify(p)})'>Sửa</button>
+          </td>
+        </tr>
+      `).join('');
+    });
+}
+
+function openAddPriceModal() {
+  document.getElementById('priceModalTitle').textContent = 'Thêm Mức Giá Mới';
+  document.getElementById('p-id').value = '';
+  document.getElementById('p-vtype').value = 'CONTAINER';
+  document.getElementById('p-minweight').value = '';
+  document.getElementById('p-maxweight').value = '';
+  document.getElementById('p-amount').value = '100000';
+  document.getElementById('p-status').value = 'ACTIVE';
+  new bootstrap.Modal(document.getElementById('priceModal')).show();
+}
+
+function openEditPriceModal(p) {
+  document.getElementById('priceModalTitle').textContent = 'Sửa Bảng Giá';
+  document.getElementById('p-id').value = p.PriceID || '';
+  document.getElementById('p-vtype').value = p.VehicleType || 'CONTAINER';
+  document.getElementById('p-minweight').value = p.MinWeightKg || '';
+  document.getElementById('p-maxweight').value = p.MaxWeightKg || '';
+  document.getElementById('p-amount').value = p.PricePerDay || '';
+  document.getElementById('p-status').value = p.Status || 'ACTIVE';
+  new bootstrap.Modal(document.getElementById('priceModal')).show();
+}
+
+function savePriceFromModal() {
+  const data = {
+    PriceID: document.getElementById('p-id').value,
+    VehicleType: document.getElementById('p-vtype').value,
+    MinWeightKg: document.getElementById('p-minweight').value,
+    MaxWeightKg: document.getElementById('p-maxweight').value,
+    PricePerDay: document.getElementById('p-amount').value,
+    Status: document.getElementById('p-status').value
+  };
+
+  Api.call('apiSavePriceConfig', [data])
+    .then(res => {
+      Swal.fire({ icon: 'success', title: 'Thành công', text: res.message });
+      bootstrap.Modal.getInstance(document.getElementById('priceModal')).hide();
+      loadPriceConfigs();
+    })
+    .catch(err => Swal.fire({ icon: 'error', title: 'Lỗi', text: err.message }));
+}
+
+function loadUsers() {
+  Api.call('apiGetUsers')
+    .then(res => {
+      const list = res.data || [];
+      const tbody = document.getElementById('settings-users-tbody');
+      if (!tbody) return;
+
+      tbody.innerHTML = list.map(u => `
+        <tr>
+          <td class="fw-semibold">${u.UserID}</td>
+          <td>${u.Email}</td>
+          <td>${u.FullName}</td>
+          <td><span class="role-tag">${u.Role}</span></td>
+          <td><span class="badge bg-${u.Status === 'ACTIVE' ? 'success' : 'danger'}">${u.Status}</span></td>
+          <td>${u.CreatedAt || '—'}</td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-secondary me-1" onclick='openEditUserModal(${JSON.stringify(u)})'>Sửa</button>
+            <button class="btn btn-sm btn-${u.Status === 'ACTIVE' ? 'outline-danger' : 'outline-success'}" onclick="toggleUserStatus('${u.UserID}')">
+              ${u.Status === 'ACTIVE' ? 'Khóa' : 'Kích hoạt'}
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    });
+}
+
+function openAddUserModal() {
+  document.getElementById('userModalTitle').textContent = 'Thêm Người Dùng Mới';
+  document.getElementById('u-id').value = '';
+  document.getElementById('u-email').value = '';
+  document.getElementById('u-name').value = '';
+  document.getElementById('u-role').value = 'GATE_IN';
+  document.getElementById('u-status').value = 'ACTIVE';
+  new bootstrap.Modal(document.getElementById('userModal')).show();
+}
+
+function openEditUserModal(u) {
+  document.getElementById('userModalTitle').textContent = 'Sửa Thông Tin Tài Khoản';
+  document.getElementById('u-id').value = u.UserID || '';
+  document.getElementById('u-email').value = u.Email || '';
+  document.getElementById('u-name').value = u.FullName || '';
+  document.getElementById('u-role').value = u.Role || 'GATE_IN';
+  document.getElementById('u-status').value = u.Status || 'ACTIVE';
+  new bootstrap.Modal(document.getElementById('userModal')).show();
+}
+
+function saveUserFromModal() {
+  const data = {
+    UserID: document.getElementById('u-id').value,
+    Email: document.getElementById('u-email').value,
+    FullName: document.getElementById('u-name').value,
+    Role: document.getElementById('u-role').value,
+    Status: document.getElementById('u-status').value
+  };
+
+  Api.call('apiSaveUser', [data])
+    .then(res => {
+      Swal.fire({ icon: 'success', title: 'Thành công', text: res.message });
+      bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+      loadUsers();
+    })
+    .catch(err => Swal.fire({ icon: 'error', title: 'Lỗi', text: err.message }));
+}
+
+function toggleUserStatus(userId) {
+  Api.call('apiToggleUserStatus', [userId])
+    .then(res => {
+      Swal.fire({ icon: 'success', title: 'Thành công', text: res.message });
+      loadUsers();
+    })
+    .catch(err => Swal.fire({ icon: 'error', title: 'Lỗi', text: err.message }));
+}
+
+function loadAuditLogs() {
+  Api.call('apiGetAuditLogs', [100])
+    .then(res => {
+      const list = res.data || [];
+      const tbody = document.getElementById('settings-audit-tbody');
+      if (!tbody) return;
+
+      tbody.innerHTML = list.map(l => `
+        <tr>
+          <td>${l.Timestamp}</td>
+          <td><span class="fw-semibold">${l.UserEmail}</span></td>
+          <td><span class="badge bg-secondary">${l.Action}</span></td>
+          <td>${l.Entity}</td>
+          <td><code>${l.EntityID}</code></td>
+          <td>${l.OldStatus ? (l.OldStatus + ' &rarr; ') : ''}<strong>${l.NewStatus || '—'}</strong></td>
+          <td>${l.Description}</td>
+        </tr>
+      `).join('');
+    });
+}
+
+function triggerInitializeDatabase() {
+  Swal.fire({
+    title: 'Khởi tạo cấu trúc Database?',
+    text: 'Hệ thống sẽ kiểm tra 10 Sheet, tạo Headers và nạp dữ liệu cấu hình mặc định (bảo toàn dữ liệu đã có).',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    confirmButtonText: 'Bắt đầu Khởi Tạo',
+    cancelButtonText: 'Đóng'
+  }).then(result => {
+    if (result.isConfirmed) {
+      Api.call('apiInitializeDatabase')
+        .then(res => {
+          Swal.fire({ icon: 'success', title: 'Thành công!', text: res.message });
+        })
+        .catch(err => Swal.fire({ icon: 'error', title: 'Lỗi', text: err.message }));
+    }
+  });
+}
+
+// ==========================================================================
+// 10. LOCAL STANDALONE MOCK ENGINE (TỰ ĐỘNG CHẠY KHI KHÔNG CÓ GOOGLE APPS SCRIPT)
+// ==========================================================================
+
+const MockBackend = (function() {
+  const STORAGE_KEY = 'DTK_BAI_XE_MOCK_DB';
+
+  function getDB() {
+    let db = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if (!db) {
+      db = {
+        VEHICLES: [
+          {
+            VehicleID: 'VH-20261008-1001',
+            CargoDirection: 'IMPORT',
+            VehicleType: 'CONTAINER',
+            LicensePlate: '51C12345',
+            ContainerNo: 'MSCU1234567',
+            WeightKg: 28000,
+            Company: 'ABC LOGISTICS',
+            DriverName: 'Nguyễn Văn A',
+            DriverPhone: '0901234567',
+            RegistrationDate: '08/10/2026 07:00:00',
+            Status: 'IN_YARD',
+            CreatedAt: '08/10/2026 07:00:00'
+          },
+          {
+            VehicleID: 'VH-20261008-1002',
+            CargoDirection: 'EXPORT',
+            VehicleType: 'TRUCK',
+            LicensePlate: '29C67890',
+            ContainerNo: '',
+            WeightKg: 6500,
+            Company: 'VẬN TẢI THÀNH PHÁT',
+            DriverName: 'Trần Văn B',
+            DriverPhone: '0912345678',
+            RegistrationDate: '08/10/2026 07:30:00',
+            Status: 'READY_TO_EXIT',
+            CreatedAt: '08/10/2026 07:30:00'
+          },
+          {
+            VehicleID: 'VH-20261008-1003',
+            CargoDirection: 'IMPORT',
+            VehicleType: 'CONTAINER',
+            LicensePlate: '60C99988',
+            ContainerNo: 'TEMU9988776',
+            WeightKg: 30000,
+            Company: 'ĐỒNG NAI TRANS',
+            DriverName: 'Lê Văn C',
+            DriverPhone: '0988776655',
+            RegistrationDate: '08/10/2026 08:00:00',
+            Status: 'REGISTERED',
+            CreatedAt: '08/10/2026 08:00:00'
+          }
+        ],
+        GATE_IN: [
+          {
+            GateInID: 'GI-20261008-1001',
+            VehicleID: 'VH-20261008-1001',
+            TicketNo: 'BAI-20261008-000101',
+            GateInTime: '08/10/2026 07:15:00',
+            GateInBy: 'gatein@dtk.local',
+            Status: 'COMPLETED'
+          },
+          {
+            GateInID: 'GI-20261008-1002',
+            VehicleID: 'VH-20261008-1002',
+            TicketNo: 'BAI-20261008-000102',
+            GateInTime: '07/10/2026 08:00:00', // Đã ở bãi > 24 giờ!
+            GateInBy: 'gatein@dtk.local',
+            Status: 'COMPLETED'
+          }
+        ],
+        YARD: [
+          {
+            YardID: 'YD-20261008-1001',
+            VehicleID: 'VH-20261008-1001',
+            GateInID: 'GI-20261008-1001',
+            InYardTime: '08/10/2026 07:15:00',
+            ReadyToExitTime: '',
+            Status: 'IN_YARD'
+          },
+          {
+            YardID: 'YD-20261008-1002',
+            VehicleID: 'VH-20261008-1002',
+            GateInID: 'GI-20261008-1002',
+            InYardTime: '07/10/2026 08:00:00',
+            ReadyToExitTime: '08/10/2026 08:30:00',
+            ReadyToExitBy: 'yard@dtk.local',
+            Status: 'READY_TO_EXIT'
+          }
+        ],
+        FEES: [
+          {
+            FeeID: 'FEE-20261007-001',
+            VehicleID: 'VH-DEMO-001',
+            CargoDirection: 'IMPORT',
+            VehicleType: 'CONTAINER',
+            GateInTime: '07/10/2026 06:00:00',
+            GateOutTime: '07/10/2026 18:00:00',
+            TotalHours: 12,
+            ChargeDays: 1,
+            UnitPrice: 100000,
+            TotalAmount: 100000,
+            CalculatedAt: '07/10/2026 18:00:00'
+          }
+        ],
+        BATCHES: [
+          {
+            BatchID: 'IMP-20261008-0001',
+            FileName: 'Danh_Sach_Xe_Sang_0810.xlsx',
+            Company: 'ABC LOGISTICS',
+            ImportTime: '08/10/2026 07:00:00',
+            ImportBy: 'admin@dtk.local',
+            TotalRows: 3,
+            SuccessRows: 3,
+            ErrorRows: 0,
+            Status: 'IMPORTED'
+          }
+        ],
+        PRICES: [
+          { PriceID: 'PRC-001', VehicleType: 'CONTAINER', MinWeightKg: '', MaxWeightKg: '', PricePerDay: 100000, EffectiveDate: '01/01/2026 00:00:00', Status: 'ACTIVE' },
+          { PriceID: 'PRC-002', VehicleType: 'TRUCK', MinWeightKg: 0, MaxWeightKg: 7000, PricePerDay: 70000, EffectiveDate: '01/01/2026 00:00:00', Status: 'ACTIVE' },
+          { PriceID: 'PRC-003', VehicleType: 'TRUCK', MinWeightKg: 7000.01, MaxWeightKg: '', PricePerDay: 100000, EffectiveDate: '01/01/2026 00:00:00', Status: 'ACTIVE' }
+        ],
+        USERS: [
+          { UserID: 'USR-ADMIN-001', Email: 'admin@dtk.local', FullName: 'Quản Trị Viên Hệ Thống', Role: 'ADMIN', Status: 'ACTIVE', CreatedAt: '01/01/2026 00:00:00' },
+          { UserID: 'USR-GATEIN-001', Email: 'gatein@dtk.local', FullName: 'Nhân Viên Cổng Vào', Role: 'GATE_IN', Status: 'ACTIVE', CreatedAt: '01/01/2026 00:00:00' },
+          { UserID: 'USR-YARD-001', Email: 'yard@dtk.local', FullName: 'Nhân Viên Bãi', Role: 'YARD', Status: 'ACTIVE', CreatedAt: '01/01/2026 00:00:00' },
+          { UserID: 'USR-GATEOUT-001', Email: 'gateout@dtk.local', FullName: 'Nhân Viên Cổng Ra', Role: 'GATE_OUT', Status: 'ACTIVE', CreatedAt: '01/01/2026 00:00:00' }
+        ],
+        AUDIT: [
+          { Timestamp: '08/10/2026 08:30:00', UserEmail: 'yard@dtk.local', Action: 'READY_TO_EXIT', Entity: 'VEHICLE', EntityID: 'VH-20261008-1002', OldStatus: 'IN_YARD', NewStatus: 'READY_TO_EXIT', Description: 'Duyệt xe 29C67890 sẵn sàng xuất bãi.' }
+        ]
+      };
+      saveDB(db);
+    }
+    return db;
+  }
+
+  function saveDB(db) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+  }
+
+  return {
+    apiGetInitialData: () => ({ success: true, data: { user: getDB().USERS[0] } }),
+    apiInitializeDatabase: () => {
+      localStorage.removeItem(STORAGE_KEY);
+      getDB();
+      return { success: true, message: 'Khởi tạo cấu trúc Database Local thành công!' };
+    },
+    apiGetDashboardKPIs: (period) => {
+      const db = getDB();
+      const inYard = db.YARD.filter(y => y.Status === 'IN_YARD').length;
+      const ready = db.YARD.filter(y => y.Status === 'READY_TO_EXIT').length;
+      return {
+        success: true,
+        data: {
+          period: period,
+          importCount: db.VEHICLES.filter(v => v.CargoDirection === 'IMPORT').length,
+          exportCount: db.VEHICLES.filter(v => v.CargoDirection === 'EXPORT').length,
+          inYardCount: inYard,
+          readyToExitCount: ready,
+          completedCount: db.FEES.length,
+          over24hCount: 1,
+          revenue: db.FEES.reduce((s, f) => s + f.TotalAmount, 0),
+          revenueFormatted: db.FEES.reduce((s, f) => s + f.TotalAmount, 0).toLocaleString('vi-VN') + ' VNĐ',
+          chartData: [
+            { date: '02/10', importCount: 3, exportCount: 2 },
+            { date: '03/10', importCount: 4, exportCount: 3 },
+            { date: '04/10', importCount: 2, exportCount: 5 },
+            { date: '05/10', importCount: 5, exportCount: 4 },
+            { date: '06/10', importCount: 6, exportCount: 3 },
+            { date: '07/10', importCount: 4, exportCount: 4 },
+            { date: '08/10', importCount: 3, exportCount: 2 }
+          ]
+        }
+      };
+    },
+    apiSearchGateIn: (plate) => {
+      const db = getDB();
+      const norm = plate.replace(/[\s\-\.]/g, '').toUpperCase();
+      const v = db.VEHICLES.find(item => item.LicensePlate.replace(/[\s\-\.]/g, '').toUpperCase() === norm);
+      if (!v) return { success: false, message: 'Không tìm thấy xe ' + plate };
+      if (v.Status !== 'REGISTERED' && v.Status !== 'WAITING_GATE_IN') {
+        return { success: false, message: 'Xe đang ở trạng thái ' + v.Status };
+      }
+      return { success: true, data: v };
+    },
+    apiApproveGateIn: (vId) => {
+      const db = getDB();
+      const v = db.VEHICLES.find(i => i.VehicleID === vId);
+      if (!v) return { success: false, message: 'Không tìm thấy xe' };
+      v.Status = 'IN_YARD';
+
+      const ticketNo = 'BAI-20261008-' + Math.floor(100000 + Math.random() * 900000);
+      const gateInTime = '08/10/2026 09:00:00';
+
+      db.GATE_IN.push({ GateInID: 'GI-' + Date.now(), VehicleID: v.VehicleID, TicketNo: ticketNo, GateInTime: gateInTime, GateInBy: 'gatein@dtk.local', Status: 'COMPLETED' });
+      db.YARD.push({ YardID: 'YD-' + Date.now(), VehicleID: v.VehicleID, GateInID: 'GI-' + Date.now(), InYardTime: gateInTime, ReadyToExitTime: '', Status: 'IN_YARD' });
+      saveDB(db);
+
+      return {
+        success: true,
+        data: {
+          ticket: {
+            ticketNo: ticketNo,
+            licensePlate: v.LicensePlate,
+            vehicleType: v.VehicleType,
+            cargoDirection: v.CargoDirection,
+            containerNo: v.ContainerNo,
+            company: v.Company,
+            driverName: v.DriverName,
+            gateInTime: gateInTime,
+            qrPayload: ticketNo
+          }
+        }
+      };
+    },
+    apiGetTicketReprint: (ticketNo) => {
+      const db = getDB();
+      const gi = db.GATE_IN.find(i => i.TicketNo === ticketNo);
+      if (!gi) return { success: false, message: 'Không tìm thấy vé' };
+      const v = db.VEHICLES.find(i => i.VehicleID === gi.VehicleID) || {};
+      return {
+        success: true,
+        data: {
+          ticketNo: gi.TicketNo,
+          licensePlate: v.LicensePlate,
+          vehicleType: v.VehicleType,
+          cargoDirection: v.CargoDirection,
+          containerNo: v.ContainerNo,
+          company: v.Company,
+          driverName: v.DriverName,
+          gateInTime: gi.GateInTime,
+          qrPayload: gi.TicketNo
+        }
+      };
+    },
+    apiGetVehiclesInYard: () => {
+      const db = getDB();
+      const list = db.YARD.filter(y => y.Status === 'IN_YARD' || y.Status === 'READY_TO_EXIT').map(y => {
+        const v = db.VEHICLES.find(i => i.VehicleID === y.VehicleID) || {};
+        const gi = db.GATE_IN.find(i => i.VehicleID === y.VehicleID) || {};
+        const isOver = y.InYardTime.includes('07/10');
+        return {
+          yardId: y.YardID,
+          vehicleId: y.VehicleID,
+          ticketNo: gi.TicketNo || '—',
+          licensePlate: v.LicensePlate || '—',
+          vehicleType: v.VehicleType || '—',
+          cargoDirection: v.CargoDirection || '—',
+          containerNo: v.ContainerNo || '—',
+          company: v.Company || '—',
+          inYardTime: y.InYardTime,
+          status: y.Status,
+          durationFormatted: isOver ? '1 ngày 1 giờ 30 phút' : '2 giờ 15 phút',
+          isOver24h: isOver
+        };
+      });
+      return { success: true, data: list };
+    },
+    apiApproveReadyToExit: (vId) => {
+      const db = getDB();
+      const y = db.YARD.find(i => i.VehicleID === vId);
+      const v = db.VEHICLES.find(i => i.VehicleID === vId);
+      if (y) y.Status = 'READY_TO_EXIT';
+      if (v) v.Status = 'READY_TO_EXIT';
+      saveDB(db);
+      return { success: true, message: 'Duyệt Ready To Exit thành công' };
+    },
+    apiGetReadyToExitVehicles: () => {
+      const db = getDB();
+      const ready = db.YARD.filter(y => y.Status === 'READY_TO_EXIT').map(y => {
+        const v = db.VEHICLES.find(i => i.VehicleID === y.VehicleID) || {};
+        const gi = db.GATE_IN.find(i => i.VehicleID === y.VehicleID) || {};
+        return {
+          vehicleId: y.VehicleID,
+          ticketNo: gi.TicketNo,
+          licensePlate: v.LicensePlate,
+          containerNo: v.ContainerNo,
+          durationFormatted: '1 ngày 1 giờ 30 phút'
+        };
+      });
+      return { success: true, data: ready };
+    },
+    apiInspectGateOut: (key) => {
+      const db = getDB();
+      const norm = key.replace(/[\s\-\.]/g, '').toUpperCase();
+      const gi = db.GATE_IN.find(i => i.TicketNo === key || i.TicketNo.toUpperCase() === norm) || db.GATE_IN[1];
+      const v = db.VEHICLES.find(i => i.VehicleID === gi.VehicleID) || db.VEHICLES[1];
+
+      if (v.Status !== 'READY_TO_EXIT') {
+        return { success: false, message: '❌ XE CHƯA ĐƯỢC DUYỆT CHỜ RA. Trạng thái hiện tại: ' + v.Status };
+      }
+
+      return {
+        success: true,
+        data: {
+          vehicle: v,
+          gateIn: gi,
+          inspectTime: '08/10/2026 09:30:00',
+          previewFee: {
+            formattedDuration: '25 giờ 30 phút',
+            chargeDays: 2,
+            unitPrice: 70000,
+            totalAmount: 140000,
+            formattedUnitPrice: '70.000 VNĐ',
+            formattedTotalAmount: '140.000 VNĐ'
+          }
+        }
+      };
+    },
+    apiApproveGateOut: (ticketNo, plate) => {
+      const db = getDB();
+      const gi = db.GATE_IN.find(i => i.TicketNo === ticketNo);
+      const v = db.VEHICLES.find(i => i.VehicleID === gi.VehicleID);
+      const y = db.YARD.find(i => i.VehicleID === gi.VehicleID);
+
+      if (v) v.Status = 'COMPLETED';
+      if (y) y.Status = 'COMPLETED';
+
+      db.FEES.push({
+        FeeID: 'FEE-' + Date.now(),
+        VehicleID: v.VehicleID,
+        CargoDirection: v.CargoDirection,
+        VehicleType: v.VehicleType,
+        GateInTime: gi.GateInTime,
+        GateOutTime: '08/10/2026 09:35:00',
+        TotalHours: 25.5,
+        ChargeDays: 2,
+        UnitPrice: 70000,
+        TotalAmount: 140000,
+        CalculatedAt: '08/10/2026 09:35:00'
+      });
+      saveDB(db);
+
+      return {
+        success: true,
+        data: {
+          ticketNo: ticketNo,
+          licensePlate: v.LicensePlate,
+          vehicleType: v.VehicleType,
+          containerNo: v.ContainerNo,
+          gateInTime: gi.GateInTime,
+          gateOutTime: '08/10/2026 09:35:00',
+          duration: '25 giờ 30 phút',
+          chargeDays: 2,
+          formattedTotalAmount: '140.000 VNĐ',
+          gateOutBy: 'gateout@dtk.local'
+        }
+      };
+    },
+    apiValidateImport: (rows, fName, comp) => {
+      if (!rows || rows.length === 0) return { success: false, errors: [{ row: 1, column: 'File', message: 'File trống' }] };
+      const valid = rows.map((r, idx) => ({
+        VehicleID: 'VH-IMP-' + idx,
+        LicensePlate: r.LicensePlate || r['Biển số xe'] || '51C-0000' + idx,
+        VehicleType: r.VehicleType || 'CONTAINER',
+        CargoDirection: r.CargoDirection || 'IMPORT',
+        ContainerNo: r.ContainerNo || 'CONT00' + idx,
+        WeightKg: r.WeightKg || 25000,
+        Company: r.Company || comp || 'NHÀ XE DEMO',
+        DriverName: r.DriverName || 'Tài Xế Test',
+        RegistrationDate: '08/10/2026'
+      }));
+      return {
+        success: true,
+        batchId: 'IMP-' + Date.now(),
+        fileName: fName,
+        validRowsCount: valid.length,
+        previewData: valid.slice(0, 10),
+        validRows: valid
+      };
+    },
+    apiCommitImport: (batchData) => {
+      const db = getDB();
+      batchData.validRows.forEach(r => {
+        r.Status = 'REGISTERED';
+        db.VEHICLES.push(r);
+      });
+      db.BATCHES.unshift({
+        BatchID: batchData.batchId,
+        FileName: batchData.fileName,
+        Company: batchData.company,
+        ImportTime: '08/10/2026 09:00:00',
+        ImportBy: 'admin@dtk.local',
+        TotalRows: batchData.validRowsCount,
+        SuccessRows: batchData.validRowsCount,
+        ErrorRows: 0,
+        Status: 'IMPORTED'
+      });
+      saveDB(db);
+      return { success: true, message: 'Đã import ' + batchData.validRowsCount + ' xe vào Database!' };
+    },
+    apiGetImportBatches: () => ({ success: true, data: getDB().BATCHES }),
+    apiGetCompletedReport: () => {
+      const db = getDB();
+      const list = db.FEES.map(f => {
+        const v = db.VEHICLES.find(i => i.VehicleID === f.VehicleID) || {};
+        return {
+          feeId: f.FeeID,
+          licensePlate: v.LicensePlate || '51C12345',
+          vehicleType: f.VehicleType,
+          cargoDirection: f.CargoDirection,
+          containerNo: v.ContainerNo || '—',
+          company: v.Company || '—',
+          gateInTime: f.GateInTime,
+          gateOutTime: f.GateOutTime,
+          totalHours: f.TotalHours,
+          chargeDays: f.ChargeDays,
+          unitPrice: f.UnitPrice,
+          totalAmount: f.TotalAmount,
+          formattedTotalAmount: f.TotalAmount.toLocaleString('vi-VN') + ' VNĐ'
+        };
+      });
+      return { success: true, data: list };
+    },
+    apiGetPriceConfigs: () => ({ success: true, data: getDB().PRICES }),
+    apiSavePriceConfig: (data) => {
+      const db = getDB();
+      if (data.PriceID) {
+        const p = db.PRICES.find(i => i.PriceID === data.PriceID);
+        if (p) Object.assign(p, data);
+      } else {
+        data.PriceID = 'PRC-' + Date.now();
+        db.PRICES.push(data);
+      }
+      saveDB(db);
+      return { success: true, message: 'Lưu bảng giá thành công' };
+    },
+    apiGetUsers: () => ({ success: true, data: getDB().USERS }),
+    apiSaveUser: (data) => {
+      const db = getDB();
+      if (data.UserID) {
+        const u = db.USERS.find(i => i.UserID === data.UserID);
+        if (u) Object.assign(u, data);
+      } else {
+        data.UserID = 'USR-' + Date.now();
+        data.CreatedAt = '08/10/2026';
+        db.USERS.push(data);
+      }
+      saveDB(db);
+      return { success: true, message: 'Lưu tài khoản thành công' };
+    },
+    apiToggleUserStatus: (uid) => {
+      const db = getDB();
+      const u = db.USERS.find(i => i.UserID === uid);
+      if (u) u.Status = (u.Status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE');
+      saveDB(db);
+      return { success: true, message: 'Cập nhật trạng thái thành công' };
+    },
+    apiGetAuditLogs: () => ({ success: true, data: getDB().AUDIT })
+  };
+})();
+</script>
+
+</body>
+</html>

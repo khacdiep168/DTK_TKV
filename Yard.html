@@ -1,0 +1,69 @@
+<!-- Yard.html -->
+<div id="view-yard" class="view-section">
+  <div class="card border-0 shadow-sm rounded-3 p-3 mb-3">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <div>
+        <h5 class="fw-bold mb-1 text-primary"><i class="bi bi-building me-2"></i>QUẢN LÝ XE TRONG BÃI (YARD)</h5>
+        <p class="text-muted small mb-0">Theo dõi phương tiện đang lưu bãi, thời gian lưu thực tế và duyệt cho phép xe chờ xuất bãi</p>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <button class="btn btn-outline-secondary btn-sm" onclick="loadVehiclesInYard()"><i class="bi bi-arrow-clockwise me-1"></i>Làm mới</button>
+      </div>
+    </div>
+
+    <!-- Filter & Search Toolbar -->
+    <div class="row g-2 align-items-center">
+      <!-- Search input -->
+      <div class="col-md-4">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" id="yard-search-input" class="form-control" placeholder="Tìm biển số, container, nhà xe..." onkeyup="filterYardTable()">
+        </div>
+      </div>
+      <!-- Filter Direction -->
+      <div class="col-md-3">
+        <select id="yard-filter-direction" class="form-select form-select-sm" onchange="filterYardTable()">
+          <option value="ALL">-- Tất cả chiều (Nhập/Xuất) --</option>
+          <option value="IMPORT">Xe Nhập Khẩu</option>
+          <option value="EXPORT">Xe Xuất Khẩu</option>
+        </select>
+      </div>
+      <!-- Filter Status -->
+      <div class="col-md-3">
+        <select id="yard-filter-status" class="form-select form-select-sm" onchange="filterYardTable()">
+          <option value="ALL">-- Tất cả trạng thái --</option>
+          <option value="IN_YARD">Đang ở trong bãi (IN_YARD)</option>
+          <option value="READY_TO_EXIT">Đã duyệt chờ ra (READY_TO_EXIT)</option>
+          <option value="OVER24H">Cảnh báo quá 24 giờ</option>
+        </select>
+      </div>
+      <!-- Total count badge -->
+      <div class="col-md-2 text-md-end">
+        <span class="badge bg-primary px-3 py-2 fs-6" id="yard-total-count">0 xe</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Yard Vehicle List Table -->
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Biển Số Xe</th>
+          <th>Số Container</th>
+          <th>Loại Xe</th>
+          <th>Nghiệp Vụ</th>
+          <th>Nhà Xe / Tài Xế</th>
+          <th>Số Vé</th>
+          <th>Giờ Vào Bãi</th>
+          <th>Thời Gian Lưu Bãi</th>
+          <th>Trạng Thái</th>
+          <th class="text-center">Thao Tác</th>
+        </tr>
+      </thead>
+      <tbody id="yard-vehicles-tbody">
+        <tr><td colspan="10" class="text-center py-4 text-muted">Đang tải danh sách phương tiện trong bãi...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,9 @@
+﻿VehicleType,CargoDirection,LicensePlate,ContainerNo,WeightKg,Company,DriverName,DriverPhone,RegistrationDate,Note
+CONTAINER,IMPORT,51C-123.45,MSCU1234567,28500,ABC LOGISTICS,Nguyễn Văn An,0903123456,08/10/2026,Hàng linh kiện điện tử nhập khẩu cảng Cát Lái
+CONTAINER,EXPORT,50H-987.65,TEMU9988776,30200,TÂN CẢNG LOGISTICS,Trần Văn Bình,0918765432,08/10/2026,Container hàng may mặc xuất khẩu đi Mỹ
+TRUCK,EXPORT,29C-678.90,,6500,VẬN TẢI THÀNH PHÁT,Lê Hoàng Cường,0988654321,08/10/2026,Xe tải 6.5 tấn chở nông sản xuất khẩu
+TRUCK,IMPORT,60C-888.99,,12500,ĐỒNG NAI TRANS,Phạm Quốc Dũng,0977112233,08/10/2026,Xe tải nặng 12.5 tấn nhận hàng sắt thép
+CONTAINER,IMPORT,15C-345.67,ONEU5544332,26000,HẢI PHÒNG MARITIME,Vũ Đức Em,0933445566,08/10/2026,Cont đông lạnh nhập khẩu
+TRUCK,IMPORT,61C-456.78,,5200,BÌNH DƯƠNG EXPRESS,Đỗ Hùng Giang,0966778899,08/10/2026,Xe tải nhẹ 5.2 tấn chở bao bì carton
+CONTAINER,EXPORT,51D-789.01,CMAU8877665,31000,SAI GON SHIPLOG,Bùi Văn Hùng,0944556677,08/10/2026,Cont hạt điều xuất khẩu châu Âu
+TRUCK,EXPORT,72C-234.56,,15000,VŨNG TÀU TRANSPORT,Ngô Đình Khôi,0922334455,08/10/2026,Xe tải 3 chân 15 tấn xuất hàng vật tư

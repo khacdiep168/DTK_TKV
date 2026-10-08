@@ -1,0 +1,168 @@
+<!-- Settings.html -->
+<div id="view-settings" class="view-section">
+  <div class="row g-4">
+    <!-- Navigation Tabs for Settings Subsections -->
+    <div class="col-12">
+      <ul class="nav nav-pills border-bottom pb-2 gap-2" id="settings-tabs" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active px-3 py-2 fw-semibold" id="tab-prices" onclick="switchSettingsTab('prices')">
+            <i class="bi bi-tag me-1"></i> Bảng Giá Cấu Hình (PRICE_CONFIG)
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link px-3 py-2 fw-semibold" id="tab-users" onclick="switchSettingsTab('users')">
+            <i class="bi bi-people me-1"></i> Quản Lý Người Dùng (USERS)
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link px-3 py-2 fw-semibold" id="tab-audit" onclick="switchSettingsTab('audit')">
+            <i class="bi bi-shield-lock me-1"></i> Nhật Ký Hoạt Động (AUDIT_LOG)
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link px-3 py-2 fw-semibold" id="tab-system" onclick="switchSettingsTab('system')">
+            <i class="bi bi-gear me-1"></i> Khởi Tạo & Hệ Thống (DATABASE)
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 1. BẢNG GIÁ PRICE_CONFIG -->
+    <div class="col-12 settings-subview" id="settings-view-prices">
+      <div class="card border-0 shadow-sm rounded-3 p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h6 class="fw-bold mb-1">Cấu Hình Bảng Giá Lưu Bãi (PRICE_CONFIG)</h6>
+            <small class="text-muted">Đơn giá động theo ngày, tải trọng xe và loại phương tiện theo CLAUDE.md Section 22</small>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openAddPriceModal()">
+            <i class="bi bi-plus-circle me-1"></i> Thêm Mức Giá Mới
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Mã Giá</th>
+                <th>Loại Phương Tiện</th>
+                <th>Tải Trọng Tối Thiểu (kg)</th>
+                <th>Tải Trọng Tối Đa (kg)</th>
+                <th>Đơn Giá / Ngày (VNĐ)</th>
+                <th>Ngày Hiệu Lực</th>
+                <th>Trạng Thái</th>
+                <th class="text-center">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="settings-price-tbody">
+              <tr><td colspan="8" class="text-center py-3 text-muted">Đang tải bảng giá...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. QUẢN LÝ NGƯỜI DÙNG USERS -->
+    <div class="col-12 settings-subview d-none" id="settings-view-users">
+      <div class="card border-0 shadow-sm rounded-3 p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h6 class="fw-bold mb-1">Danh Sách Tài Khoản & Phân Quyền (USERS)</h6>
+            <small class="text-muted">Quản lý nhân viên vận hành và phân quyền các module theo CLAUDE.md Section 34</small>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openAddUserModal()">
+            <i class="bi bi-person-plus me-1"></i> Thêm Tài Khoản
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Mã User</th>
+                <th>Email Google</th>
+                <th>Họ Và Tên</th>
+                <th>Quyền Hạn (Role)</th>
+                <th>Trạng Thái</th>
+                <th>Ngày Tạo</th>
+                <th class="text-center">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="settings-users-tbody">
+              <tr><td colspan="7" class="text-center py-3 text-muted">Đang tải danh sách tài khoản...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. NHẬT KÝ AUDIT LOG -->
+    <div class="col-12 settings-subview d-none" id="settings-view-audit">
+      <div class="card border-0 shadow-sm rounded-3 p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h6 class="fw-bold mb-1">Nhật Ký Thao Tác Hệ Thống (AUDIT_LOG)</h6>
+            <small class="text-muted">Ghi nhận minh bạch mọi thao tác nghiệp vụ theo CLAUDE.md Section 33, 54</small>
+          </div>
+          <button class="btn btn-outline-secondary btn-sm" onclick="loadAuditLogs()"><i class="bi bi-arrow-clockwise"></i> Làm mới</button>
+        </div>
+
+        <div class="table-responsive" style="max-height: 500px;">
+          <table class="data-table small">
+            <thead>
+              <tr>
+                <th>Thời Gian</th>
+                <th>Người Thực Hiện</th>
+                <th>Hành Động</th>
+                <th>Đối Tượng</th>
+                <th>Mã Đối Tượng</th>
+                <th>Trạng Thái Cũ &rarr; Mới</th>
+                <th>Mô Tả Chi Tiết</th>
+              </tr>
+            </thead>
+            <tbody id="settings-audit-tbody">
+              <tr><td colspan="7" class="text-center py-3 text-muted">Đang tải nhật ký...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. KHỞI TẠO & HỆ THỐNG -->
+    <div class="col-12 settings-subview d-none" id="settings-view-system">
+      <div class="card border-0 shadow-sm rounded-3 p-4">
+        <h6 class="fw-bold text-danger mb-2"><i class="bi bi-database-gear me-2"></i>Khởi Tạo Cơ Sở Dữ Liệu Google Sheets</h6>
+        <p class="text-muted small mb-3">
+          Chức năng này sẽ quét và tự động tạo 10 Sheet tiêu chuẩn, thiết lập dòng tiêu đề (Headers) và nạp dữ liệu ban đầu (bảng giá, người dùng admin mặc định). Chức năng an toàn và bảo toàn dữ liệu hiện có.
+        </p>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-danger fw-semibold" onclick="triggerInitializeDatabase()">
+            <i class="bi bi-play-circle me-1"></i> Khởi Tạo / Cập Nhật Cấu Trúc Database
+          </button>
+        </div>
+
+        <hr class="my-4">
+
+        <h6 class="fw-bold mb-2"><i class="bi bi-info-circle me-2"></i>Thông Tin Hệ Thống</h6>
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item d-flex justify-content-between px-0">
+            <span class="text-muted">Múi Giờ Hệ Thống</span>
+            <span class="fw-bold">Asia/Ho_Chi_Minh (+07:00)</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0">
+            <span class="text-muted">Tiền Tố Số Vé</span>
+            <span class="fw-bold">BAI-YYYYMMDD-XXXXXX</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0">
+            <span class="text-muted">Quy Tắc Tính Phí</span>
+            <span class="fw-bold">CEILING(TotalHours / 24), tối thiểu 1 ngày</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between px-0">
+            <span class="text-muted">Phiên Bản Ứng Dụng</span>
+            <span class="fw-bold">1.0.0 (Gas Web App)</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

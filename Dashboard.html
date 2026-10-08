@@ -1,0 +1,169 @@
+<!-- Dashboard.html -->
+<div id="view-dashboard" class="view-section active">
+  <!-- Top Filter Bar -->
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+      <h4 class="fw-bold mb-1">Tổng Quan Vận Hành Bãi Xe</h4>
+      <p class="text-muted small mb-0">Theo dõi thời gian thực số lượng phương tiện vào/ra và tình trạng lưu bãi</p>
+    </div>
+    <div class="btn-group" role="group">
+      <button type="button" class="btn btn-outline-secondary btn-sm active" onclick="loadDashboardKPIs('TODAY', this)">Hôm nay</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="loadDashboardKPIs('YESTERDAY', this)">Hôm qua</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="loadDashboardKPIs('7DAYS', this)">7 ngày</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="loadDashboardKPIs('30DAYS', this)">30 ngày</button>
+    </div>
+  </div>
+
+  <!-- KPI Grid 7 chỉ số theo CLAUDE.md Section 35 -->
+  <div class="kpi-grid">
+    <!-- 1. Xe Nhập khẩu -->
+    <div class="kpi-card border-start border-primary border-4">
+      <div class="kpi-header">
+        <span>Nhập khẩu</span>
+        <div class="kpi-icon bg-primary-subtle text-primary"><i class="bi bi-box-arrow-in-down"></i></div>
+      </div>
+      <div class="kpi-value" id="kpi-import">0</div>
+      <div class="kpi-subtext">Xe đăng ký/vào bãi</div>
+    </div>
+
+    <!-- 2. Xe Xuất khẩu -->
+    <div class="kpi-card border-start border-purple border-4" style="border-left-color: #9333ea !important;">
+      <div class="kpi-header">
+        <span>Xuất khẩu</span>
+        <div class="kpi-icon bg-purple-subtle text-purple" style="background-color: #f3e8ff; color: #9333ea;"><i class="bi bi-box-arrow-up"></i></div>
+      </div>
+      <div class="kpi-value" id="kpi-export">0</div>
+      <div class="kpi-subtext">Xe đăng ký/vào bãi</div>
+    </div>
+
+    <!-- 3. Đang trong bãi -->
+    <div class="kpi-card border-start border-info border-4">
+      <div class="kpi-header">
+        <span>Đang trong bãi</span>
+        <div class="kpi-icon bg-info-subtle text-info"><i class="bi bi-truck"></i></div>
+      </div>
+      <div class="kpi-value text-primary" id="kpi-inyard">0</div>
+      <div class="kpi-subtext">Phương tiện lưu bãi</div>
+    </div>
+
+    <!-- 4. Chờ ra -->
+    <div class="kpi-card border-start border-warning border-4">
+      <div class="kpi-header">
+        <span>Chờ xuất bãi</span>
+        <div class="kpi-icon bg-warning-subtle text-warning"><i class="bi bi-hourglass-split"></i></div>
+      </div>
+      <div class="kpi-value text-warning" id="kpi-ready">0</div>
+      <div class="kpi-subtext">Đã duyệt Ready to Exit</div>
+    </div>
+
+    <!-- 5. Đã ra -->
+    <div class="kpi-card border-start border-success border-4">
+      <div class="kpi-header">
+        <span>Đã xuất bãi</span>
+        <div class="kpi-icon bg-success-subtle text-success"><i class="bi bi-check-circle"></i></div>
+      </div>
+      <div class="kpi-value text-success" id="kpi-completed">0</div>
+      <div class="kpi-subtext">Hoàn tất Gate Out</div>
+    </div>
+
+    <!-- 6. Quá 24 giờ -->
+    <div class="kpi-card border-start border-danger border-4">
+      <div class="kpi-header">
+        <span>Quá 24 giờ</span>
+        <div class="kpi-icon bg-danger-subtle text-danger"><i class="bi bi-exclamation-triangle"></i></div>
+      </div>
+      <div class="kpi-value text-danger" id="kpi-over24h">0</div>
+      <div class="kpi-subtext">Lưu bãi vượt 24h</div>
+    </div>
+
+    <!-- 7. Doanh thu -->
+    <div class="kpi-card border-start border-success border-4" style="border-left-color: #059669 !important;">
+      <div class="kpi-header">
+        <span>Doanh thu</span>
+        <div class="kpi-icon bg-success-subtle text-success"><i class="bi bi-cash-stack"></i></div>
+      </div>
+      <div class="kpi-value text-success" id="kpi-revenue" style="font-size: 1.4rem;">0 VNĐ</div>
+      <div class="kpi-subtext">Tổng tiền thu được</div>
+    </div>
+  </div>
+
+  <!-- Operational Overview & Quick Action Panels -->
+  <div class="row g-3 mb-4">
+    <!-- Chart / Activity Trend -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-3 p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0"><i class="bi bi-bar-chart-line me-2 text-primary"></i>Biến Động Xe Ra Vào 7 Ngày Gần Nhất</h6>
+          <span class="badge bg-light text-dark border">Thống kê ngày</span>
+        </div>
+        <div style="height: 250px; position: relative;">
+          <canvas id="dashboard-trend-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Shortcuts for Operators -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-3 p-3 h-100">
+        <h6 class="fw-bold mb-3"><i class="bi bi-lightning-charge me-2 text-warning"></i>Thao Tác Nhanh Theo Vị Trí</h6>
+        <div class="d-grid gap-2">
+          <button class="btn btn-outline-primary text-start p-2 d-flex align-items-center gap-2" onclick="navigateTo('gatein')">
+            <i class="bi bi-box-arrow-in-right fs-4"></i>
+            <div>
+              <div class="fw-bold">Cổng Vào (Gate In)</div>
+              <small class="text-muted">Tìm xe, duyệt vào & in phiếu QR</small>
+            </div>
+          </button>
+          <button class="btn btn-outline-warning text-dark text-start p-2 d-flex align-items-center gap-2" onclick="navigateTo('yard')">
+            <i class="bi bi-building fs-4"></i>
+            <div>
+              <div class="fw-bold">Trong Bãi (Yard)</div>
+              <small class="text-muted">Quản lý lưu bãi & duyệt chờ ra</small>
+            </div>
+          </button>
+          <button class="btn btn-outline-success text-start p-2 d-flex align-items-center gap-2" onclick="navigateTo('gateout')">
+            <i class="bi bi-box-arrow-right fs-4"></i>
+            <div>
+              <div class="fw-bold">Cổng Ra (Gate Out)</div>
+              <small class="text-muted">Quét phiếu, tính phí & cho xe ra</small>
+            </div>
+          </button>
+          <button class="btn btn-outline-secondary text-start p-2 d-flex align-items-center gap-2" onclick="navigateTo('import')">
+            <i class="bi bi-file-earmark-excel fs-4"></i>
+            <div>
+              <div class="fw-bold">Import Danh Sách Xe</div>
+              <small class="text-muted">Tải file Excel đăng ký xe từ nhà xe</small>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Vehicles In Yard -->
+  <div class="card border-0 shadow-sm rounded-3 p-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="fw-bold mb-0"><i class="bi bi-truck-front me-2 text-primary"></i>Xe Đang Trong Bãi Gần Đây</h6>
+      <button class="btn btn-sm btn-link text-decoration-none" onclick="navigateTo('yard')">Xem toàn bộ bãi &rarr;</button>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Biển Số</th>
+            <th>Loại Xe</th>
+            <th>Nghiệp Vụ</th>
+            <th>Container</th>
+            <th>Nhà Xe</th>
+            <th>Giờ Vào</th>
+            <th>Thời Gian Lưu</th>
+            <th>Trạng Thái</th>
+          </tr>
+        </thead>
+        <tbody id="dashboard-recent-yard-tbody">
+          <tr><td colspan="8" class="text-center py-3 text-muted">Đang tải dữ liệu xe trong bãi...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

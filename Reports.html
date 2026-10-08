@@ -1,0 +1,90 @@
+<!-- Reports.html -->
+<div id="view-reports" class="view-section">
+  <div class="card border-0 shadow-sm rounded-3 p-3 mb-3">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <div>
+        <h5 class="fw-bold mb-1 text-primary"><i class="bi bi-file-earmark-bar-graph me-2"></i>BÁO CÁO & ĐỐI SOÁT VẬN HÀNH</h5>
+        <p class="text-muted small mb-0">Tra cứu chi tiết xe đã xuất bãi, đối soát doanh thu và xuất báo cáo Excel</p>
+      </div>
+      <button class="btn btn-outline-success btn-sm" onclick="exportReportToExcel()">
+        <i class="bi bi-file-earmark-excel me-1"></i> Xuất File Excel
+      </button>
+    </div>
+
+    <!-- Filters Toolbar -->
+    <div class="row g-2 align-items-center">
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold text-muted mb-1">Nghiệp Vụ</label>
+        <select id="report-filter-direction" class="form-select form-select-sm" onchange="loadCompletedReport()">
+          <option value="ALL">-- Tất cả chiều --</option>
+          <option value="IMPORT">Nhập Khẩu</option>
+          <option value="EXPORT">Xuất Khẩu</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold text-muted mb-1">Loại Phương Tiện</label>
+        <select id="report-filter-vtype" class="form-select form-select-sm" onchange="loadCompletedReport()">
+          <option value="ALL">-- Tất cả loại xe --</option>
+          <option value="CONTAINER">Container</option>
+          <option value="TRUCK">Xe Tải</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold text-muted mb-1">Tìm Nhà Xe / Đơn Vị</label>
+        <input type="text" id="report-filter-company" class="form-control form-control-sm" placeholder="Tên nhà xe hoặc từ khóa..." onkeyup="loadCompletedReport()">
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary btn-sm w-100" onclick="loadCompletedReport()">
+          <i class="bi bi-filter me-1"></i> Lọc Dữ Liệu
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Cards for Filtered Report -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm p-3 bg-white text-center">
+        <div class="text-muted small text-uppercase fw-semibold">Tổng Lượt Xuất Bãi</div>
+        <div class="fs-4 fw-bold text-dark" id="report-sum-count">0 lượt</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm p-3 bg-white text-center">
+        <div class="text-muted small text-uppercase fw-semibold">Tổng Ngày Tính Phí</div>
+        <div class="fs-4 fw-bold text-primary" id="report-sum-days">0 ngày</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm p-3 bg-white text-center">
+        <div class="text-muted small text-uppercase fw-semibold">Tổng Doanh Thu Thu Được</div>
+        <div class="fs-4 fw-bold text-success" id="report-sum-revenue">0 VNĐ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Data Table -->
+  <div class="table-responsive">
+    <table class="data-table" id="report-table">
+      <thead>
+        <tr>
+          <th>Mã Phí</th>
+          <th>Biển Số Xe</th>
+          <th>Loại Xe</th>
+          <th>Nghiệp Vụ</th>
+          <th>Số Container</th>
+          <th>Nhà Xe</th>
+          <th>Giờ Vào</th>
+          <th>Giờ Ra</th>
+          <th>Thời Gian Lưu</th>
+          <th>Số Ngày</th>
+          <th>Đơn Giá</th>
+          <th>Thành Tiền</th>
+        </tr>
+      </thead>
+      <tbody id="report-completed-tbody">
+        <tr><td colspan="12" class="text-center py-4 text-muted">Đang tải dữ liệu báo cáo...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,132 @@
+<!-- GateOut.html -->
+<div id="view-gateout" class="view-section">
+  <div class="row g-4">
+    <!-- Main Gate Out Inspection & Checkout Panel -->
+    <div class="col-lg-7">
+      <div class="action-card">
+        <div class="action-card-header">
+          <div class="action-card-title text-success">
+            <i class="bi bi-box-arrow-right fs-4"></i>
+            <span>CỔNG RA (GATE OUT) & TÍNH PHÍ</span>
+          </div>
+          <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+            <i class="bi bi-shield-check me-1"></i>Kiểm soát cổng xuất bãi
+          </span>
+        </div>
+
+        <!-- Big Search / Scan Bar for Operator -->
+        <div class="search-operator-box">
+          <input type="text" id="gateout-search-input" class="input-operator-plate" placeholder="QUÉT MÃ QR HOẶC NHẬP SỐ VÉ / BIỂN SỐ" autocomplete="off" onkeypress="if(event.key === 'Enter') inspectGateOutTicket()">
+          <button class="btn-operator-search bg-success" type="button" onclick="inspectGateOutTicket()">
+            <i class="bi bi-qr-code-scan"></i> KIỂM TRA
+          </button>
+        </div>
+
+        <!-- Inspection Result & Fee Calculation Preview Card -->
+        <div id="gateout-inspection-card" style="display: none;">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-uppercase fw-bold text-muted small">Thông Tin Xác Thực & Chi Phí Lưu Bãi</span>
+            <span id="gateout-status-badge" class="badge-status badge-READY_TO_EXIT">READY_TO_EXIT</span>
+          </div>
+
+          <!-- Vehicle Info Summary -->
+          <div class="vehicle-info-grid mb-3">
+            <div>
+              <div class="info-item-label">Số Vé Vào Bãi</div>
+              <div class="info-item-value highlight text-primary" id="gateout-info-ticket">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Biển Số Trên Vé</div>
+              <div class="info-item-value highlight text-dark" id="gateout-info-plate">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Loại Phương Tiện</div>
+              <div class="info-item-value" id="gateout-info-type">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Số Container</div>
+              <div class="info-item-value" id="gateout-info-container">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Thời Điểm Vào Bãi</div>
+              <div class="info-item-value" id="gateout-info-intime">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Thời Điểm Ra Bãi (Dự kiến)</div>
+              <div class="info-item-value text-success" id="gateout-info-outtime">—</div>
+            </div>
+          </div>
+
+          <!-- Fee Calculation Box (CLAUDE.md Section 20-23) -->
+          <div class="card border-success border-2 bg-success-subtle bg-opacity-10 p-3 mb-3 rounded-3">
+            <div class="row text-center g-2">
+              <div class="col-4 border-end border-success-subtle">
+                <div class="text-muted small fw-semibold text-uppercase">Thời Gian Lưu Bãi</div>
+                <div class="fw-bold fs-6 text-dark" id="gateout-calc-duration">0 giờ 0 phút</div>
+              </div>
+              <div class="col-4 border-end border-success-subtle">
+                <div class="text-muted small fw-semibold text-uppercase">Số Ngày Tính Phí</div>
+                <div class="fw-bold fs-5 text-primary" id="gateout-calc-days">1 ngày</div>
+                <small class="text-muted" id="gateout-calc-unitprice">Đơn giá: 100.000đ/ngày</small>
+              </div>
+              <div class="col-4">
+                <div class="text-muted small fw-semibold text-uppercase">Tổng Phí Phải Thu</div>
+                <div class="fw-bolder fs-4 text-success" id="gateout-calc-total">100.000 VNĐ</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Đối chiếu biển số thực tế tại cổng (CLAUDE.md Section 17, 18) -->
+          <div class="mb-3">
+            <label class="form-label fw-bold text-dark small text-uppercase">
+              <i class="bi bi-camera me-1"></i>Đối Chiếu Biển Số Thực Tế Tại Cổng <span class="text-danger">*</span>
+            </label>
+            <input type="text" id="gateout-actual-plate" class="form-control form-control-lg fw-bold text-uppercase border-2" placeholder="Xác nhận biển số thực tế của xe trước cổng">
+            <div class="form-text small">Nhân viên nhìn biển số xe thực tế trước mặt cổng để đối chiếu với hồ sơ vé.</div>
+          </div>
+
+          <!-- Nút Duyệt Gate Out lớn -->
+          <div class="mt-3">
+            <button id="btn-gateout-approve" class="btn-gate-action btn-gate-out" type="button" onclick="confirmGateOut()">
+              <i class="bi bi-check2-all fs-3"></i> DUYỆT CHO XE RA & THU PHÍ
+            </button>
+          </div>
+        </div>
+
+        <!-- Placeholder khi chưa quét vé -->
+        <div id="gateout-placeholder" class="text-center py-5 border rounded-3 bg-light text-muted">
+          <i class="bi bi-qr-code display-4 text-secondary mb-2"></i>
+          <p class="mb-0 fw-medium">Quét mã QR trên phiếu của tài xế hoặc nhập số vé / biển số để kiểm tra.</p>
+          <small class="text-muted">Chỉ xe đã được nhân viên bãi duyệt <strong>READY_TO_EXIT</strong> mới được phép xuất bãi.</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danh sách Xe Được Phép Ra (READY_TO_EXIT) & Gọi loa (CLAUDE.md Section 17) -->
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm rounded-3 p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0 text-warning text-dark"><i class="bi bi-megaphone-fill me-2 text-warning"></i>Xe Được Phép Ra (Chờ Gọi)</h6>
+          <button class="btn btn-sm btn-outline-secondary" onclick="loadReadyToExitVehicles()"><i class="bi bi-arrow-clockwise"></i></button>
+        </div>
+
+        <div class="table-responsive" style="max-height: 480px;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Biển Số</th>
+                <th>Container</th>
+                <th>Thời Gian Lưu</th>
+                <th>Gọi Loa</th>
+                <th>Chọn</th>
+              </tr>
+            </thead>
+            <tbody id="gateout-ready-tbody">
+              <tr><td colspan="5" class="text-center py-3 text-muted">Không có xe nào đang chờ xuất bãi.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

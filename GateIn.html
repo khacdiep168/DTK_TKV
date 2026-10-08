@@ -1,0 +1,110 @@
+<!-- GateIn.html -->
+<div id="view-gatein" class="view-section">
+  <div class="row g-4">
+    <!-- Main Gate In Interaction Panel -->
+    <div class="col-lg-7">
+      <div class="action-card">
+        <div class="action-card-header">
+          <div class="action-card-title text-primary">
+            <i class="bi bi-box-arrow-in-right fs-4"></i>
+            <span>CỔNG VÀO (GATE IN)</span>
+          </div>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+            <i class="bi bi-shield-check me-1"></i>Kiểm soát cổng vào
+          </span>
+        </div>
+
+        <!-- Big Search Bar for Operator -->
+        <div class="search-operator-box">
+          <input type="text" id="gatein-plate-input" class="input-operator-plate" placeholder="NHẬP BIỂN SỐ XE (VD: 51C-12345)" autocomplete="off" onkeypress="if(event.key === 'Enter') searchGateInVehicle()">
+          <button class="btn-operator-search" type="button" onclick="searchGateInVehicle()">
+            <i class="bi bi-search"></i> TÌM XE
+          </button>
+        </div>
+
+        <!-- Vehicle Inspection Card (Hiển thị thông tin xe khi tìm thấy) -->
+        <div id="gatein-inspection-card" style="display: none;">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-uppercase fw-bold text-muted small">Thông Tin Xe Đăng Ký</span>
+            <span id="gatein-vehicle-status-badge" class="badge-status badge-REGISTERED">REGISTERED</span>
+          </div>
+
+          <div class="vehicle-info-grid">
+            <div>
+              <div class="info-item-label">Biển Số Xe</div>
+              <div class="info-item-value highlight" id="gatein-info-plate">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Loại Phương Tiện</div>
+              <div class="info-item-value" id="gatein-info-type">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Nghiệp Vụ</div>
+              <div class="info-item-value" id="gatein-info-direction">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Số Container</div>
+              <div class="info-item-value" id="gatein-info-container">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Trọng Lượng (kg)</div>
+              <div class="info-item-value" id="gatein-info-weight">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Đơn Vị / Nhà Xe</div>
+              <div class="info-item-value" id="gatein-info-company">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Tài Xế & SĐT</div>
+              <div class="info-item-value" id="gatein-info-driver">—</div>
+            </div>
+            <div>
+              <div class="info-item-label">Ngày Đăng Ký</div>
+              <div class="info-item-value" id="gatein-info-regdate">—</div>
+            </div>
+          </div>
+
+          <!-- Nút Duyệt Gate In kích thước lớn (CLAUDE.md Section 11, 41) -->
+          <div class="mt-3">
+            <button id="btn-gatein-approve" class="btn-gate-action btn-gate-in" type="button" onclick="confirmGateIn()">
+              <i class="bi bi-check2-circle fs-3"></i> DUYỆT CHO VÀO & TẠO PHIẾU
+            </button>
+          </div>
+        </div>
+
+        <!-- Placeholder khi chưa tìm xe -->
+        <div id="gatein-placeholder" class="text-center py-5 border rounded-3 bg-light text-muted">
+          <i class="bi bi-truck display-4 text-secondary mb-2"></i>
+          <p class="mb-0 fw-medium">Nhập biển số xe hoặc quét mã QR đăng ký phía trên để bắt đầu Gate In.</p>
+          <small class="text-muted">Nhân viên cổng đối chiếu biển số thực tế với hồ sơ đăng ký.</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick History & Re-print ticket panel -->
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm rounded-3 p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Xe Vừa Vào Bãi Gần Đây</h6>
+          <button class="btn btn-sm btn-outline-secondary" onclick="loadRecentGateIns()"><i class="bi bi-arrow-clockwise"></i></button>
+        </div>
+
+        <div class="table-responsive" style="max-height: 480px;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Số Vé</th>
+                <th>Biển Số</th>
+                <th>Giờ Vào</th>
+                <th>In Lại</th>
+              </tr>
+            </thead>
+            <tbody id="gatein-recent-tbody">
+              <tr><td colspan="4" class="text-center py-3 text-muted">Chưa có lượt xe nào vào bãi gần đây.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

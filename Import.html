@@ -1,0 +1,121 @@
+<!-- Import.html -->
+<div id="view-import" class="view-section">
+  <div class="row g-4">
+    <!-- Import Form & File Upload -->
+    <div class="col-lg-12">
+      <div class="card border-0 shadow-sm rounded-3 p-4 mb-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1 text-primary"><i class="bi bi-file-earmark-excel me-2"></i>IMPORT DANH SÁCH XE TỪ EXCEL</h5>
+            <p class="text-muted small mb-0">Quy trình bắt buộc: Tải file &rarr; Kiểm tra dữ liệu (Validate) &rarr; Xem trước (Preview) &rarr; Xác nhận Commit Database</p>
+          </div>
+          <button class="btn btn-outline-success btn-sm" onclick="downloadSampleExcel()">
+            <i class="bi bi-download me-1"></i> Tải Mẫu File Excel Chuẩn
+          </button>
+        </div>
+
+        <!-- Upload & Settings -->
+        <div class="row g-3 align-items-end mb-3">
+          <div class="col-md-5">
+            <label class="form-label fw-semibold small text-uppercase">Chọn file Excel (.xlsx, .xls, .csv) <span class="text-danger">*</span></label>
+            <input type="file" id="excel-file-input" class="form-control" accept=".xlsx, .xls, .csv" onchange="handleExcelFileSelect(this)">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small text-uppercase">Đơn Vị / Nhà Xe (Mặc định)</label>
+            <input type="text" id="import-company-input" class="form-control" placeholder="Tên đơn vị vận tải nếu file không có">
+          </div>
+          <div class="col-md-3">
+            <button id="btn-validate-excel" class="btn btn-primary w-100 fw-semibold" onclick="processExcelUpload()" disabled>
+              <i class="bi bi-search me-1"></i> Kiểm Tra Dữ Liệu
+            </button>
+          </div>
+        </div>
+
+        <!-- Validation Error Alert Box (CLAUDE.md Section 8) -->
+        <div id="import-error-container" class="alert alert-danger d-none mt-3" role="alert">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-exclamation-octagon-fill fs-5"></i>
+            <strong class="fs-6">IMPORT THẤT BẠI - PHÁT HIỆN LỖI DỮ LIỆU</strong>
+          </div>
+          <p class="small mb-2">Vui lòng sửa các lỗi sau trong file Excel trước khi tiếp tục:</p>
+          <div class="table-responsive bg-white rounded-2 border">
+            <table class="table table-sm table-striped mb-0 small">
+              <thead class="table-danger">
+                <tr>
+                  <th style="width: 80px;">Dòng</th>
+                  <th style="width: 150px;">Cột Lỗi</th>
+                  <th style="width: 180px;">Giá Trị Nhận Được</th>
+                  <th>Nội Dung Lỗi Chi Tiết</th>
+                </tr>
+              </thead>
+              <tbody id="import-error-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Preview & Confirm Box (CLAUDE.md Section 6, 8) -->
+        <div id="import-preview-container" class="card border-success border-2 bg-light p-3 d-none mt-3">
+          <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+            <div>
+              <span class="badge bg-success px-2 py-1 me-2"><i class="bi bi-check-circle me-1"></i>DỮ LIỆU HỢP LỆ</span>
+              <strong class="text-dark" id="import-preview-summary">0 dòng hợp lệ sẵn sàng import.</strong>
+            </div>
+            <button id="btn-confirm-import" class="btn btn-success fw-bold px-4" onclick="confirmCommitImport()">
+              <i class="bi bi-database-check me-1"></i> XÁC NHẬN IMPORT VÀO DATABASE
+            </button>
+          </div>
+
+          <div class="table-responsive bg-white rounded-2 border mt-2">
+            <table class="data-table small">
+              <thead>
+                <tr>
+                  <th>Biển Số</th>
+                  <th>Loại Xe</th>
+                  <th>Nghiệp Vụ</th>
+                  <th>Số Container</th>
+                  <th>Khối Lượng (kg)</th>
+                  <th>Nhà Xe</th>
+                  <th>Tài Xế</th>
+                  <th>Ngày Đăng Ký</th>
+                </tr>
+              </thead>
+              <tbody id="import-preview-tbody"></tbody>
+            </table>
+          </div>
+          <small class="text-muted mt-2 d-block">* Hiển thị xem trước tối đa 10 dòng đầu tiên.</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Batch History List (CLAUDE.md Section 9) -->
+    <div class="col-lg-12">
+      <div class="card border-0 shadow-sm rounded-3 p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Lịch Sử Các Đợt Import (IMPORT_BATCH)</h6>
+          <button class="btn btn-sm btn-outline-secondary" onclick="loadImportBatches()"><i class="bi bi-arrow-clockwise"></i> Làm mới</button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Mã Batch</th>
+                <th>Tên File</th>
+                <th>Nhà Xe</th>
+                <th>Thời Gian Import</th>
+                <th>Người Import</th>
+                <th>Tổng Dòng</th>
+                <th>Thành Công</th>
+                <th>Lỗi</th>
+                <th>Trạng Thái</th>
+              </tr>
+            </thead>
+            <tbody id="import-batches-tbody">
+              <tr><td colspan="9" class="text-center py-3 text-muted">Đang tải lịch sử import...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
