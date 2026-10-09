@@ -16,26 +16,55 @@ var GateInService = (function() {
     const norm = normalizeLicensePlate(plateInput);
     const all = DatabaseService.readAll(SHEETS.VEHICLE_REGISTER) || [];
     
-    // Tìm các xe có biển số khớp và ở trạng thái hợp lệ
+    // Tìm các xe có biển số khớp
     const candidates = all.filter(v => normalizeLicensePlate(v.LicensePlate) === norm);
 
     if (candidates.length === 0) {
       return responseError('Không tìm thấy thông tin đăng ký cho biển số: ' + plateInput, 'VEHICLE_NOT_FOUND');
     }
 
-    // Ưu tiên xe đang ở REGISTERED hoặc WAITING_GATE_IN
-    const pending = candidates.find(v => v.Status === VEHICLE_STATUS.REGISTERED || v.Status === VEHICLE_STATUS.WAITING_GATE_IN);
-    if (!pending) {
-      const latest = candidates[candidates.length - 1];
-      let msg = 'Xe đang ở trạng thái: ' + latest.Status + '.';
-      if (latest.Status === VEHICLE_STATUS.IN_YARD) msg = 'Xe đã vào bãi trước đó và đang ở trong bãi.';
-      if (latest.Status === VEHICLE_STATUS.READY_TO_EXIT) msg = 'Xe đang chờ xuất bãi tại cổng ra.';
-      if (latest.Status === VEHICLE_STATUS.COMPLETED) msg = 'Lượt xe này đã hoàn tất xuất bãi.';
-      if (latest.Status === VEHICLE_STATUS.CANCELLED) msg = 'Đăng ký xe này đã bị hủy.';
-      return responseError(msg, 'INVALID_STATE', latest);
+    // 1. CHẶN TUYỆT ĐỐI: Kiểm tra xem xe này có đang ở trong bãi không?
+    const inYardVehicle = candidates.find(v => 
+      v.Status === VEHICLE_STATUS.IN_YARD || 
+      v.Status === VEHICLE_STATUS.READY_TO_EXIT
+    );
+
+    if (inYardVehicle) {
+      const allGateIns = DatabaseService.readAll(SHEETS.GATE_IN) || [];
+      const activeGateIn = allGateIns.slice().reverse().find(gi => 
+        gi.VehicleID === inYardVehicle.VehicleID && 
+        gi.Status === OPERATION_STATUS.COMPLETED
+      );
+      const ticketInfo = activeGateIn ? `<br><b>Số vé:</b> ${activeGateIn.TicketNo} - <b>Giờ vào:</b> ${activeGateIn.GateInTime}` : '';
+      const statusText = inYardVehicle.Status === VEHICLE_STATUS.IN_YARD ? 'ĐANG Ở TRONG BÃI' : 'ĐANG CHỜ XUẤT BÃI TẠI CỔNG RA';
+
+      return responseError(
+        `⛔ <b>XE CHƯA RA KHỎI BÃI!</b><br>Xe mang biển số <b>${inYardVehicle.LicensePlate}</b> hiện <b>${statusText}</b>.${ticketInfo}<br><br>👉 <i>Xe bắt buộc phải hoàn tất thủ tục xuất bãi tại Cổng Ra trước khi được phép vào lại bãi!</i>`,
+        'ALREADY_IN_YARD',
+        inYardVehicle
+      );
     }
 
-    return responseSuccess('Tìm thấy thông tin phương tiện.', pending);
+    // 2. KHI XE ĐÃ RA KHỎI BÃI (HOẶC CHƯA VÀO BAO GIỜ): Kiểm tra lượt đăng ký mới
+    const pending = candidates.slice().reverse().find(v => 
+      v.Status === VEHICLE_STATUS.REGISTERED || 
+      v.Status === VEHICLE_STATUS.WAITING_GATE_IN
+    );
+
+    if (!pending) {
+      const completedCandidate = candidates.slice().reverse().find(v => v.Status === VEHICLE_STATUS.COMPLETED);
+      let exitInfo = '';
+      if (completedCandidate) {
+        exitInfo = `<br>Lượt xe gần nhất đã hoàn tất xuất bãi lúc: <b>${completedCandidate.UpdatedAt || '—'}</b>.`;
+      }
+
+      return responseError(
+        `Xe mang biển số <b>${plateInput}</b> hiện không có lượt đăng ký mới nào đang chờ vào bãi.${exitInfo}<br><br>👉 <i>Vui lòng Import file Excel hoặc tạo đăng ký mới cho xe trước khi cho vào bãi!</i>`,
+        'NO_NEW_REGISTRATION'
+      );
+    }
+
+    return responseSuccess('Tìm thấy thông tin phương tiện hợp lệ.', pending);
   }
 
   /**
@@ -60,11 +89,24 @@ var GateInService = (function() {
         return responseError('Xe không đủ điều kiện vào bãi. Trạng thái hiện tại: ' + vehicle.Status, 'INVALID_STATE');
       }
 
-      // 2. Kiểm tra xe đã có bản ghi GATE_IN chưa
+      // 2. Chặn nghiêm ngặt: Kiểm tra biển số xe này CÓ BẤT KỲ XE NÀO ĐANG Ở TRONG BÃI KHÔNG?
+      const targetNorm = normalizeLicensePlate(vehicle.LicensePlate);
+      const duplicateInYard = allVehicles.find(v => 
+        normalizeLicensePlate(v.LicensePlate) === targetNorm && 
+        (v.Status === VEHICLE_STATUS.IN_YARD || v.Status === VEHICLE_STATUS.READY_TO_EXIT)
+      );
+      if (duplicateInYard) {
+        return responseError(
+          `⛔ XE CHƯA RA KHỎI BÃI! Xe mang biển số [${vehicle.LicensePlate}] hiện đang ở trong bãi. Không thể duyệt vào bãi nhiều lần khi chưa xuất bãi!`,
+          'ALREADY_IN_YARD'
+        );
+      }
+
+      // 3. Kiểm tra xe này đã có bản ghi GATE_IN chưa
       const allGateIns = DatabaseService.readAll(SHEETS.GATE_IN) || [];
       const existingActiveGateIn = allGateIns.find(gi => gi.VehicleID === vehicleId && gi.Status === OPERATION_STATUS.COMPLETED);
       if (existingActiveGateIn) {
-        return responseError('Phương tiện này đã được Gate In trước đó với vé: ' + existingActiveGateIn.TicketNo, 'ALREADY_GATED_IN');
+        return responseError('Lượt xe này đã được Gate In trước đó với vé: ' + existingActiveGateIn.TicketNo, 'ALREADY_GATED_IN');
       }
 
       const now = new Date();

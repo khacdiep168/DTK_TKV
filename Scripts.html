@@ -521,7 +521,15 @@ function searchGateInVehicle() {
       statusBadge.textContent = v.Status;
     })
     .catch(err => {
-      Swal.fire({ icon: 'error', title: 'Không tìm thấy xe', text: err.message || 'Biển số chưa được đăng ký hoặc không hợp lệ.' });
+      // Khi không tìm thấy hoặc xe đang ở trong bãi: Ẩn card và hiện lại placeholder
+      document.getElementById('gatein-inspection-card').style.display = 'none';
+      document.getElementById('gatein-placeholder').style.display = 'block';
+      AppState.currentInspectingGateIn = null;
+      Swal.fire({
+        icon: 'warning',
+        title: 'Từ Chối Vào Bãi',
+        html: err.message || 'Biển số chưa được đăng ký hoặc xe đang ở trong bãi.'
+      });
     });
 }
 
@@ -547,6 +555,7 @@ function confirmGateIn() {
           document.getElementById('gatein-plate-input').value = '';
           document.getElementById('gatein-inspection-card').style.display = 'none';
           document.getElementById('gatein-placeholder').style.display = 'block';
+          AppState.currentInspectingGateIn = null;
 
           loadRecentGateIns();
 
@@ -556,7 +565,7 @@ function confirmGateIn() {
           }
         })
         .catch(err => {
-          Swal.fire({ icon: 'error', title: 'Lỗi Gate In', text: err.message });
+          Swal.fire({ icon: 'error', title: 'Không Thể Cho Vào Bãi', html: err.message });
         });
     }
   });
@@ -1836,21 +1845,51 @@ const MockBackend = (function() {
     apiSearchGateIn: (plate) => {
       const db = getDB();
       const norm = plate.replace(/[\s\-\.]/g, '').toUpperCase();
-      const v = db.VEHICLES.find(item => item.LicensePlate.replace(/[\s\-\.]/g, '').toUpperCase() === norm);
-      if (!v) return { success: false, message: 'Không tìm thấy xe ' + plate };
-      if (v.Status !== 'REGISTERED' && v.Status !== 'WAITING_GATE_IN') {
-        return { success: false, message: 'Xe đang ở trạng thái ' + v.Status };
+      const candidates = (db.VEHICLES || []).filter(item => item.LicensePlate.replace(/[\s\-\.]/g, '').toUpperCase() === norm);
+      if (candidates.length === 0) return { success: false, message: 'Không tìm thấy thông tin đăng ký cho xe ' + plate };
+
+      // 1. Kiểm tra xe có đang ở trong bãi không
+      const inYardVehicle = candidates.find(v => v.Status === 'IN_YARD' || v.Status === 'READY_TO_EXIT');
+      if (inYardVehicle) {
+        const activeGateIn = (db.GATE_IN || []).slice().reverse().find(gi => gi.VehicleID === inYardVehicle.VehicleID && gi.Status === 'COMPLETED');
+        const ticketInfo = activeGateIn ? `<br><b>Số vé:</b> ${activeGateIn.TicketNo} - <b>Giờ vào:</b> ${activeGateIn.GateInTime}` : '';
+        const statusText = inYardVehicle.Status === 'IN_YARD' ? 'ĐANG Ở TRONG BÃI' : 'ĐANG CHỜ XUẤT BÃI TẠI CỔNG RA';
+        return {
+          success: false,
+          message: `⛔ <b>XE CHƯA RA KHỎI BÃI!</b><br>Xe mang biển số <b>${inYardVehicle.LicensePlate}</b> hiện <b>${statusText}</b>.${ticketInfo}<br><br>👉 <i>Xe bắt buộc phải hoàn tất thủ tục xuất bãi tại Cổng Ra trước khi được phép vào lại bãi!</i>`
+        };
       }
-      return { success: true, data: v };
+
+      // 2. Tìm lượt đăng ký mới
+      const pending = candidates.slice().reverse().find(v => v.Status === 'REGISTERED' || v.Status === 'WAITING_GATE_IN');
+      if (!pending) {
+        return {
+          success: false,
+          message: `Xe mang biển số <b>${plate}</b> hiện không có lượt đăng ký mới nào đang chờ vào bãi.<br><br>👉 <i>Vui lòng Import file Excel hoặc tạo đăng ký mới cho xe trước khi cho vào bãi!</i>`
+        };
+      }
+
+      return { success: true, data: pending };
     },
     apiApproveGateIn: (vId) => {
       const db = getDB();
       const v = db.VEHICLES.find(i => i.VehicleID === vId);
       if (!v) return { success: false, message: 'Không tìm thấy xe' };
+
+      const norm = v.LicensePlate.replace(/[\s\-\.]/g, '').toUpperCase();
+      const inYardSamePlate = db.VEHICLES.find(item => item.LicensePlate.replace(/[\s\-\.]/g, '').toUpperCase() === norm && (item.Status === 'IN_YARD' || item.Status === 'READY_TO_EXIT'));
+      if (inYardSamePlate) {
+        return {
+          success: false,
+          message: `⛔ XE CHƯA RA KHỎI BÃI! Xe mang biển số [${v.LicensePlate}] hiện đang ở trong bãi. Không thể duyệt vào bãi nhiều lần khi chưa xuất bãi!`
+        };
+      }
+
       v.Status = 'IN_YARD';
 
-      const ticketNo = 'BAI-20261008-' + Math.floor(100000 + Math.random() * 900000);
-      const gateInTime = '08/10/2026 09:00:00';
+      const ticketNo = 'BAI-20261009-' + Math.floor(100000 + Math.random() * 900000);
+      const now = new Date();
+      const gateInTime = ('0' + now.getDate()).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear() + ' ' + ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2) + ':' + ('0' + now.getSeconds()).slice(-2);
 
       db.GATE_IN.push({ GateInID: 'GI-' + Date.now(), VehicleID: v.VehicleID, TicketNo: ticketNo, GateInTime: gateInTime, GateInBy: 'gatein@dtk.local', Status: 'COMPLETED' });
       db.YARD.push({ YardID: 'YD-' + Date.now(), VehicleID: v.VehicleID, GateInID: 'GI-' + Date.now(), InYardTime: gateInTime, ReadyToExitTime: '', Status: 'IN_YARD' });
