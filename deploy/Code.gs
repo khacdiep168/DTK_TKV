@@ -1583,11 +1583,113 @@ var VehicleService = (function() {
     return responseSuccess('Đã hủy đăng ký phương tiện thành công.');
   }
 
+  /**
+   * Đăng ký phương tiện trực tiếp (thủ công qua form, không cần file Excel)
+   * @param {Object} data - Dữ liệu đăng ký phương tiện từ Form
+   */
+  function createVehicleRegistration(data) {
+    const user = AuthService.requireRole([ROLES.ADMIN, ROLES.BAI, ROLES.GATE_IN]);
+    if (!data) {
+      return responseError('Dữ liệu đăng ký không hợp lệ.', 'INVALID_DATA');
+    }
+
+    const rawPlate = String(data.LicensePlate || '').trim();
+    if (!rawPlate) {
+      return responseError('Vui lòng nhập Biển số xe.', 'PLATE_REQUIRED');
+    }
+
+    const normPlate = normalizeLicensePlate(rawPlate);
+    if (!normPlate || normPlate.length < 4) {
+      return responseError('Biển số xe không hợp lệ (tối thiểu 4 ký tự).', 'INVALID_PLATE');
+    }
+
+    const company = String(data.Company || '').trim();
+    if (!company) {
+      return responseError('Vui lòng nhập Đơn vị / Nhà xe.', 'COMPANY_REQUIRED');
+    }
+
+    const vehicleType = String(data.VehicleType || 'TRUCK').trim().toUpperCase();
+    const cargoDirection = String(data.CargoDirection || 'EXPORT').trim().toUpperCase();
+    const containerNo = normalizeContainerNo(data.ContainerNo);
+
+    let weightKg = '';
+    if (data.WeightKg !== '' && data.WeightKg !== null && data.WeightKg !== undefined) {
+      const parsedWeight = Number(String(data.WeightKg).replace(/,/g, ''));
+      if (isNaN(parsedWeight) || parsedWeight < 0) {
+        return responseError('Trọng lượng hàng phải là số dương hợp lệ.', 'INVALID_WEIGHT');
+      }
+      weightKg = parsedWeight;
+    }
+
+    // Kiểm tra trạng thái hiện tại của xe
+    const allVehicles = DatabaseService.readAll(SHEETS.VEHICLE_REGISTER) || [];
+    const inYard = allVehicles.find(v => 
+      normalizeLicensePlate(v.LicensePlate) === normPlate && 
+      (v.Status === VEHICLE_STATUS.IN_YARD || v.Status === VEHICLE_STATUS.READY_TO_EXIT)
+    );
+
+    let noteExtra = '';
+    if (inYard) {
+      noteExtra = ' [Lưu ý: Xe hiện đang trong bãi, đăng ký trước cho chuyến kế tiếp]';
+    }
+
+    const now = new Date();
+    const nowStr = formatDateTime(now);
+    let regDate = now;
+    if (data.RegistrationDate) {
+      const parsedRegDate = parseDateTime(data.RegistrationDate);
+      if (parsedRegDate) regDate = parsedRegDate;
+    }
+    const regDateStr = formatDateTime(regDate);
+
+    const vehicleId = generateId('VH');
+    const batchId = 'MANUAL-' + Utilities.formatDate(now, 'GMT+7', 'yyyyMMdd');
+
+    const newVehicle = {
+      VehicleID: vehicleId,
+      BatchID: batchId,
+      CargoDirection: cargoDirection,
+      VehicleType: vehicleType,
+      LicensePlate: normPlate,
+      ContainerNo: containerNo,
+      WeightKg: weightKg,
+      Company: company,
+      DriverName: String(data.DriverName || '').trim(),
+      DriverPhone: String(data.DriverPhone || '').trim(),
+      RegistrationDate: regDateStr,
+      Status: VEHICLE_STATUS.REGISTERED,
+      Note: (String(data.Note || '').trim() + noteExtra).trim(),
+      CreatedAt: nowStr,
+      CreatedBy: user.email,
+      UpdatedAt: nowStr,
+      UpdatedBy: user.email
+    };
+
+    DatabaseService.insertRow(SHEETS.VEHICLE_REGISTER, newVehicle);
+
+    AuditService.writeLog(
+      AUDIT_ACTIONS.IMPORT,
+      'VEHICLE',
+      vehicleId,
+      '',
+      VEHICLE_STATUS.REGISTERED,
+      'Đăng ký trực tiếp xe ' + normPlate + ' (' + company + ') qua form',
+      user
+    );
+
+    const msg = inYard
+      ? `Đăng ký xe ${normPlate} thành công! (Lưu ý: Xe hiện đang ở trong bãi, lượt đăng ký mới này sẽ sẵn sàng khi xe hoàn tất xuất bãi).`
+      : `Đăng ký xe ${normPlate} thành công! Xe đã sẵn sàng duyệt vào bãi tại Cổng Vào.`;
+
+    return responseSuccess(msg, newVehicle);
+  }
+
   return {
     findVehicleByKeyword: findVehicleByKeyword,
     getVehicleById: getVehicleById,
     getVehicles: getVehicles,
-    cancelRegistration: cancelRegistration
+    cancelRegistration: cancelRegistration,
+    createVehicleRegistration: createVehicleRegistration
   };
 
 })();
@@ -2649,6 +2751,17 @@ function apiFindVehicle(keyword) {
 function apiCancelVehicle(vehicleId, reason) {
   try {
     return VehicleService.cancelRegistration(vehicleId, reason);
+  } catch (err) {
+    return responseError(err.message);
+  }
+}
+
+/**
+ * API Đăng ký phương tiện trực tiếp (thủ công qua form)
+ */
+function apiRegisterVehicle(vehicleData) {
+  try {
+    return VehicleService.createVehicleRegistration(vehicleData);
   } catch (err) {
     return responseError(err.message);
   }

@@ -231,7 +231,10 @@ function navigateTo(viewName) {
   if (viewName === 'gatein') loadRecentGateIns();
   if (viewName === 'yard') loadVehiclesInYard();
   if (viewName === 'gateout') loadReadyToExitVehicles();
-  if (viewName === 'import') loadImportBatches();
+  if (viewName === 'import') {
+    loadImportBatches();
+    loadRecentRegistrations();
+  }
   if (viewName === 'reports') {
     loadCompaniesForReport();
     loadCompletedReport();
@@ -525,11 +528,30 @@ function searchGateInVehicle() {
       document.getElementById('gatein-inspection-card').style.display = 'none';
       document.getElementById('gatein-placeholder').style.display = 'block';
       AppState.currentInspectingGateIn = null;
-      Swal.fire({
-        icon: 'warning',
-        title: 'Từ Chối Vào Bãi',
-        html: err.message || 'Biển số chưa được đăng ký hoặc xe đang ở trong bãi.'
-      });
+
+      const isAlreadyInYard = (err.message || '').indexOf('XE CHƯA RA KHỎI BÃI') !== -1;
+      if (isAlreadyInYard) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Từ Chối Vào Bãi',
+          html: err.message
+        });
+      } else {
+        Swal.fire({
+          icon: 'question',
+          title: 'Chưa Có Đăng Ký',
+          html: (err.message || 'Biển số chưa được đăng ký trong hệ thống.') + '<br><br><b>Bạn có muốn đăng ký mới cho xe này ngay không?</b>',
+          showCancelButton: true,
+          confirmButtonColor: '#2563eb',
+          cancelButtonColor: '#64748b',
+          confirmButtonText: '<i class="bi bi-pencil-square me-1"></i> Đăng Ký Xe Này Ngay',
+          cancelButtonText: 'Đóng'
+        }).then(result => {
+          if (result.isConfirmed) {
+            quickRegisterFromGateIn(plate);
+          }
+        });
+      }
     });
 }
 
@@ -1079,6 +1101,232 @@ function downloadSampleExcel() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'MauDangKyXe');
   XLSX.writeFile(wb, 'Mau_Dang_Ky_Xe_Vao_Bai.xlsx');
+}
+
+// ==========================================================================
+// 7.1. MANUAL REGISTRATION LOGIC (ĐĂNG KÝ XE TRỰC TIẾP)
+// ==========================================================================
+
+function switchRegImportTab(tab) {
+  const panelManual = document.getElementById('panel-manual-registration');
+  const panelExcel = document.getElementById('panel-excel-import');
+  const btnManual = document.getElementById('subtab-btn-manual');
+  const btnExcel = document.getElementById('subtab-btn-excel');
+
+  if (!panelManual || !panelExcel) return;
+
+  if (tab === 'manual') {
+    panelManual.style.display = 'block';
+    panelExcel.style.display = 'none';
+    if (btnManual) {
+      btnManual.className = 'btn btn-sm px-3 fw-bold btn-primary';
+    }
+    if (btnExcel) {
+      btnExcel.className = 'btn btn-sm px-3 fw-bold btn-light text-secondary';
+    }
+    loadRecentRegistrations();
+  } else {
+    panelManual.style.display = 'none';
+    panelExcel.style.display = 'block';
+    if (btnManual) {
+      btnManual.className = 'btn btn-sm px-3 fw-bold btn-light text-secondary';
+    }
+    if (btnExcel) {
+      btnExcel.className = 'btn btn-sm px-3 fw-bold btn-primary';
+    }
+    loadImportBatches();
+  }
+}
+
+function handleManualTypeChange(select) {
+  const containerInput = document.getElementById('manual-reg-container');
+  const containerLabel = document.getElementById('lbl-manual-container');
+  if (select && select.value === 'CONTAINER') {
+    if (containerLabel) containerLabel.innerHTML = 'Số Container <span class="text-danger">*</span>';
+    if (containerInput) {
+      containerInput.setAttribute('required', 'required');
+      containerInput.placeholder = 'VD: TCLU1234567 (Bắt buộc cho xe Container)';
+    }
+  } else {
+    if (containerLabel) containerLabel.innerHTML = 'Số Container';
+    if (containerInput) {
+      containerInput.removeAttribute('required');
+      containerInput.placeholder = 'VD: TCLU1234567';
+    }
+  }
+}
+
+function handleManualPlateInput(input) {
+  input.value = input.value.toUpperCase();
+  const val = input.value.trim();
+  const feedback = document.getElementById('manual-reg-plate-feedback');
+  if (!feedback) return;
+
+  if (val.length >= 4) {
+    const norm = val.replace(/[\s\-\.]/g, '').toUpperCase();
+    Api.call('apiGetVehiclesInYard')
+      .then(res => {
+        const yardList = res.data || [];
+        const inYard = yardList.find(y => (y.licensePlate || '').replace(/[\s\-\.]/g, '').toUpperCase() === norm);
+        if (inYard) {
+          feedback.style.display = 'block';
+          feedback.innerHTML = `<span class="badge bg-warning-subtle text-warning border border-warning px-2 py-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Lưu ý: Xe này hiện đang ở trong bãi (Số vé: ${inYard.ticketNo || '—'}). Lượt đăng ký mới này sẽ sẵn sàng khi xe hoàn tất xuất bãi.</span>`;
+        } else {
+          feedback.style.display = 'none';
+        }
+      })
+      .catch(() => {});
+  } else {
+    feedback.style.display = 'none';
+  }
+}
+
+function resetManualRegForm() {
+  const form = document.getElementById('form-manual-registration');
+  if (form) form.reset();
+  const feedback = document.getElementById('manual-reg-plate-feedback');
+  if (feedback) feedback.style.display = 'none';
+
+  const now = new Date();
+  const localIso = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  const dateInput = document.getElementById('manual-reg-date');
+  if (dateInput) dateInput.value = localIso;
+
+  handleManualTypeChange(document.getElementById('manual-reg-type') || { value: 'TRUCK' });
+}
+
+function submitManualRegistration() {
+  const plate = document.getElementById('manual-reg-plate').value.trim();
+  const vType = document.getElementById('manual-reg-type').value;
+  const direction = document.getElementById('manual-reg-direction').value;
+  const container = document.getElementById('manual-reg-container').value.trim();
+  const weight = document.getElementById('manual-reg-weight').value.trim();
+  const company = document.getElementById('manual-reg-company').value.trim();
+  const driverName = document.getElementById('manual-reg-driver-name').value.trim();
+  const driverPhone = document.getElementById('manual-reg-driver-phone').value.trim();
+  const regDate = document.getElementById('manual-reg-date').value;
+  const note = document.getElementById('manual-reg-note').value.trim();
+
+  if (!plate) {
+    Swal.fire({ icon: 'warning', title: 'Thiếu thông tin', text: 'Vui lòng nhập Biển số xe.' });
+    return;
+  }
+
+  if (vType === 'CONTAINER' && !container) {
+    Swal.fire({ icon: 'warning', title: 'Thiếu thông tin', text: 'Loại phương tiện CONTAINER bắt buộc phải nhập Số Container.' });
+    return;
+  }
+
+  if (!company) {
+    Swal.fire({ icon: 'warning', title: 'Thiếu thông tin', text: 'Vui lòng nhập Đơn vị / Nhà xe.' });
+    return;
+  }
+
+  const payload = {
+    LicensePlate: plate,
+    VehicleType: vType,
+    CargoDirection: direction,
+    ContainerNo: container,
+    WeightKg: weight,
+    Company: company,
+    DriverName: driverName,
+    DriverPhone: driverPhone,
+    RegistrationDate: regDate,
+    Note: note
+  };
+
+  const btn = document.getElementById('btn-submit-manual-reg');
+  if (btn) btn.disabled = true;
+
+  Api.call('apiRegisterVehicle', [payload])
+    .then(res => {
+      if (btn) btn.disabled = false;
+      const registeredPlate = res.data ? res.data.LicensePlate : plate;
+      Swal.fire({
+        icon: 'success',
+        title: 'Đăng Ký Thành Công!',
+        html: `Phương tiện <b>${registeredPlate}</b> đã được ghi nhận vào hệ thống.<br><br>
+               <span class="text-muted small">${res.message}</span>`,
+        showCancelButton: true,
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: '<i class="bi bi-box-arrow-in-right me-1"></i> Chuyển Sang Cổng Vào Duyệt Ngay',
+        cancelButtonText: 'Đăng Ký Xe Khác'
+      }).then(action => {
+        const savedCompany = company;
+        resetManualRegForm();
+        const compInput = document.getElementById('manual-reg-company');
+        if (compInput) compInput.value = savedCompany;
+
+        loadRecentRegistrations();
+
+        if (action.isConfirmed) {
+          proceedToGateIn(registeredPlate);
+        }
+      });
+    })
+    .catch(err => {
+      if (btn) btn.disabled = false;
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi Đăng Ký',
+        html: err.message || 'Không thể đăng ký phương tiện.'
+      });
+    });
+}
+
+function loadRecentRegistrations() {
+  const tbody = document.getElementById('recent-manual-reg-tbody');
+  if (!tbody) return;
+
+  Api.call('apiGetVehicles', [{ status: 'REGISTERED' }])
+    .then(res => {
+      const list = (res.data || []).slice(0, 10);
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">Chưa có phương tiện nào đăng ký gần đây.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(v => `
+        <tr>
+          <td class="fw-bold text-primary">${v.LicensePlate}</td>
+          <td><span class="badge bg-light text-dark border">${v.VehicleType}</span></td>
+          <td class="text-truncate" style="max-width: 110px;" title="${v.Company}">${v.Company}</td>
+          <td><span class="badge-status badge-${v.Status}">${v.Status}</span></td>
+          <td>
+            <button class="btn btn-outline-primary btn-sm py-0 px-2 fw-semibold" onclick="proceedToGateIn('${v.LicensePlate}')" title="Duyệt cho xe vào bãi">
+              <i class="bi bi-box-arrow-in-right"></i> Duyệt
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    })
+    .catch(() => {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-danger">Không thể tải danh sách xe đăng ký.</td></tr>';
+    });
+}
+
+function proceedToGateIn(plate) {
+  navigateTo('gatein');
+  const input = document.getElementById('gatein-plate-input');
+  if (input) {
+    input.value = plate;
+    searchGateInVehicle();
+  }
+}
+
+function quickRegisterFromGateIn(prefillPlate) {
+  const plateToFill = prefillPlate || (document.getElementById('gatein-plate-input') ? document.getElementById('gatein-plate-input').value.trim() : '');
+  navigateTo('import');
+  switchRegImportTab('manual');
+  if (plateToFill) {
+    const manualInput = document.getElementById('manual-reg-plate');
+    if (manualInput) {
+      manualInput.value = plateToFill.toUpperCase();
+      handleManualPlateInput(manualInput);
+      manualInput.focus();
+    }
+  }
 }
 
 // ==========================================================================
@@ -1842,6 +2090,41 @@ const MockBackend = (function() {
         }
       };
     },
+    apiRegisterVehicle: (data) => {
+      const db = getDB();
+      const norm = (data.LicensePlate || '').replace(/[\s\-\.]/g, '').toUpperCase();
+      const now = new Date();
+      const nowStr = ('0' + now.getDate()).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear() + ' ' + ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2) + ':' + ('0' + now.getSeconds()).slice(-2);
+      
+      const inYard = (db.VEHICLES || []).find(v => (v.LicensePlate || '').replace(/[\s\-\.]/g, '').toUpperCase() === norm && (v.Status === 'IN_YARD' || v.Status === 'READY_TO_EXIT'));
+
+      const newVehicle = {
+        VehicleID: 'VH-' + Date.now(),
+        BatchID: 'MANUAL',
+        CargoDirection: data.CargoDirection || 'EXPORT',
+        VehicleType: data.VehicleType || 'TRUCK',
+        LicensePlate: norm,
+        ContainerNo: data.ContainerNo || '',
+        WeightKg: data.WeightKg || '',
+        Company: data.Company || 'VẬN TẢI',
+        DriverName: data.DriverName || '',
+        DriverPhone: data.DriverPhone || '',
+        RegistrationDate: data.RegistrationDate || nowStr,
+        Status: 'REGISTERED',
+        Note: data.Note || '',
+        CreatedAt: nowStr,
+        CreatedBy: (AppState.currentUser ? AppState.currentUser.email : 'admin@dtk.local')
+      };
+
+      db.VEHICLES.unshift(newVehicle);
+      saveDB(db);
+
+      const msg = inYard
+        ? `Đăng ký xe ${norm} thành công! (Lưu ý: Xe hiện đang ở trong bãi, lượt đăng ký mới này sẽ sẵn sàng khi xe xuất bãi).`
+        : `Đăng ký xe ${norm} thành công! Xe đã sẵn sàng duyệt vào bãi tại Cổng Vào.`;
+
+      return { success: true, message: msg, data: newVehicle };
+    },
     apiSearchGateIn: (plate) => {
       const db = getDB();
       const norm = plate.replace(/[\s\-\.]/g, '').toUpperCase();
@@ -2089,6 +2372,14 @@ const MockBackend = (function() {
       return { success: true, message: 'Đã import ' + batchData.validRowsCount + ' xe vào Database!' };
     },
     apiGetImportBatches: () => ({ success: true, data: getDB().BATCHES }),
+    apiGetVehicles: (filters) => {
+      const db = getDB();
+      let list = db.VEHICLES || [];
+      if (filters && filters.status) {
+        list = list.filter(v => v.Status === filters.status);
+      }
+      return { success: true, data: list };
+    },
     apiGetCompanies: () => {
       const db = getDB();
       const set = new Set();

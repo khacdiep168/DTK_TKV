@@ -832,8 +832,8 @@ body {
         <li class="nav-section-title">Dữ liệu & Báo cáo</li>
         <li class="nav-item">
           <a class="nav-link" id="nav-import" onclick="navigateTo('import')">
-            <i class="bi bi-file-earmark-arrow-up"></i>
-            <span>Import Excel</span>
+            <i class="bi bi-card-checklist"></i>
+            <span>Đăng Ký & Import</span>
           </a>
         </li>
         <li class="nav-item">
@@ -1125,7 +1125,10 @@ body {
         <div id="gatein-placeholder" class="text-center py-5 border rounded-3 bg-light text-muted">
           <i class="bi bi-truck display-4 text-secondary mb-2"></i>
           <p class="mb-0 fw-medium">Nhập biển số xe hoặc quét mã QR đăng ký phía trên để bắt đầu Gate In.</p>
-          <small class="text-muted">Nhân viên cổng đối chiếu biển số thực tế với hồ sơ đăng ký.</small>
+          <small class="text-muted d-block mb-3">Nhân viên cổng đối chiếu biển số thực tế với hồ sơ đăng ký.</small>
+          <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold shadow-sm" onclick="quickRegisterFromGateIn()">
+            <i class="bi bi-plus-circle me-1"></i> Xe Chưa Có Đăng Ký? Đăng Ký Mới Ngay
+          </button>
         </div>
       </div>
     </div>
@@ -1363,120 +1366,328 @@ body {
 
         <!-- Import.html -->
 <div id="view-import" class="view-section">
-  <div class="row g-4">
-    <!-- Import Form & File Upload -->
-    <div class="col-lg-12">
-      <div class="card border-0 shadow-sm rounded-3 p-4 mb-3">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-          <div>
-            <h5 class="fw-bold mb-1 text-primary"><i class="bi bi-file-earmark-excel me-2"></i>IMPORT DANH SÁCH XE TỪ EXCEL</h5>
-            <p class="text-muted small mb-0">Quy trình bắt buộc: Tải file &rarr; Kiểm tra dữ liệu (Validate) &rarr; Xem trước (Preview) &rarr; Xác nhận Commit Database</p>
-          </div>
-          <button class="btn btn-outline-success btn-sm" onclick="downloadSampleExcel()">
-            <i class="bi bi-download me-1"></i> Tải Mẫu File Excel Chuẩn
-          </button>
-        </div>
+  <!-- Nav Pills Sub-tab Switcher -->
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="btn-group p-1 bg-white rounded-3 shadow-sm border" role="group">
+      <button type="button" class="btn btn-sm px-3 fw-bold btn-primary" id="subtab-btn-manual" onclick="switchRegImportTab('manual')">
+        <i class="bi bi-pencil-square me-1"></i> Đăng Ký Xe Trực Tiếp (Form)
+      </button>
+      <button type="button" class="btn btn-sm px-3 fw-bold btn-light text-secondary" id="subtab-btn-excel" onclick="switchRegImportTab('excel')">
+        <i class="bi bi-file-earmark-excel me-1"></i> Import Từ File Excel
+      </button>
+    </div>
+    <div class="text-muted small">
+      <i class="bi bi-info-circle me-1"></i>Đăng ký trực tiếp cho từng xe hoặc tải hàng loạt danh sách từ file Excel
+    </div>
+  </div>
 
-        <!-- Upload & Settings -->
-        <div class="row g-3 align-items-end mb-3">
-          <div class="col-md-5">
-            <label class="form-label fw-semibold small text-uppercase">Chọn file Excel (.xlsx, .xls, .csv) <span class="text-danger">*</span></label>
-            <input type="file" id="excel-file-input" class="form-control" accept=".xlsx, .xls, .csv" onchange="handleExcelFileSelect(this)">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label fw-semibold small text-uppercase">Đơn Vị / Nhà Xe (Mặc định)</label>
-            <input type="text" id="import-company-input" class="form-control" placeholder="Tên đơn vị vận tải nếu file không có">
-          </div>
-          <div class="col-md-3">
-            <button id="btn-validate-excel" class="btn btn-primary w-100 fw-semibold" onclick="processExcelUpload()" disabled>
-              <i class="bi bi-search me-1"></i> Kiểm Tra Dữ Liệu
-            </button>
-          </div>
-        </div>
-
-        <!-- Validation Error Alert Box (CLAUDE.md Section 8) -->
-        <div id="import-error-container" class="alert alert-danger d-none mt-3" role="alert">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <i class="bi bi-exclamation-octagon-fill fs-5"></i>
-            <strong class="fs-6">IMPORT THẤT BẠI - PHÁT HIỆN LỖI DỮ LIỆU</strong>
-          </div>
-          <p class="small mb-2">Vui lòng sửa các lỗi sau trong file Excel trước khi tiếp tục:</p>
-          <div class="table-responsive bg-white rounded-2 border">
-            <table class="table table-sm table-striped mb-0 small">
-              <thead class="table-danger">
-                <tr>
-                  <th style="width: 80px;">Dòng</th>
-                  <th style="width: 150px;">Cột Lỗi</th>
-                  <th style="width: 180px;">Giá Trị Nhận Được</th>
-                  <th>Nội Dung Lỗi Chi Tiết</th>
-                </tr>
-              </thead>
-              <tbody id="import-error-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Preview & Confirm Box (CLAUDE.md Section 6, 8) -->
-        <div id="import-preview-container" class="card border-success border-2 bg-light p-3 d-none mt-3">
-          <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+  <!-- =========================================================================
+       SUB-TAB 1: FORM ĐĂNG KÝ XE TRỰC TIẾP
+       ========================================================================= -->
+  <div id="panel-manual-registration">
+    <div class="row g-4">
+      <!-- Form Input Column -->
+      <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-3 p-4">
+          <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
             <div>
-              <span class="badge bg-success px-2 py-1 me-2"><i class="bi bi-check-circle me-1"></i>DỮ LIỆU HỢP LỆ</span>
-              <strong class="text-dark" id="import-preview-summary">0 dòng hợp lệ sẵn sàng import.</strong>
+              <h5 class="fw-bold mb-1 text-primary">
+                <i class="bi bi-plus-circle-fill me-2"></i>ĐĂNG KÝ PHƯƠNG TIỆN MỚI
+              </h5>
+              <p class="text-muted small mb-0">Dùng khi không có file Excel hoặc đăng ký nhanh phương tiện vào bãi</p>
             </div>
-            <button id="btn-confirm-import" class="btn btn-success fw-bold px-4" onclick="confirmCommitImport()">
-              <i class="bi bi-database-check me-1"></i> XÁC NHẬN IMPORT VÀO DATABASE
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+              <i class="bi bi-shield-check me-1"></i>Đăng Ký Nhanh
+            </span>
+          </div>
+
+          <form id="form-manual-registration" onsubmit="event.preventDefault(); submitManualRegistration();">
+            <div class="row g-3">
+              <!-- Biển số xe -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold text-dark small text-uppercase">
+                  Biển Số Xe <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-primary"><i class="bi bi-truck-front-fill"></i></span>
+                  <input type="text" id="manual-reg-plate" class="form-control fw-bold fs-6 text-uppercase" placeholder="VD: 51C-12345, 60C-99988" required autocomplete="off" oninput="handleManualPlateInput(this)">
+                </div>
+                <div id="manual-reg-plate-feedback" class="small mt-1" style="display: none;"></div>
+              </div>
+
+              <!-- Loại phương tiện -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold text-dark small text-uppercase">
+                  Loại Phương Tiện <span class="text-danger">*</span>
+                </label>
+                <select id="manual-reg-type" class="form-select fw-semibold" onchange="handleManualTypeChange(this)">
+                  <option value="TRUCK" selected>TRUCK - Xe tải thông thường</option>
+                  <option value="CONTAINER">CONTAINER - Xe đầu kéo Container</option>
+                  <option value="TANKER">TANKER - Xe bồn / Xitéc</option>
+                  <option value="OTHER">OTHER - Loại xe khác</option>
+                </select>
+              </div>
+
+              <!-- Nghiệp vụ / Luồng hàng -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold text-dark small text-uppercase">
+                  Nghiệp Vụ Hàng Hóa <span class="text-danger">*</span>
+                </label>
+                <select id="manual-reg-direction" class="form-select fw-semibold">
+                  <option value="EXPORT" selected>EXPORT - Hàng Xuất Khẩu</option>
+                  <option value="IMPORT">IMPORT - Hàng Nhập Khẩu</option>
+                  <option value="TRANSIT">TRANSIT - Hàng Trung Chuyển / Ngoại Quan</option>
+                  <option value="DOMESTIC">DOMESTIC - Hàng Nội Địa</option>
+                </select>
+              </div>
+
+              <!-- Số Container -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold text-dark small text-uppercase" id="lbl-manual-container">
+                  Số Container
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light"><i class="bi bi-box-seam"></i></span>
+                  <input type="text" id="manual-reg-container" class="form-control text-uppercase" placeholder="VD: TCLU1234567" autocomplete="off">
+                </div>
+              </div>
+
+              <!-- Trọng lượng (kg) -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold text-dark small text-uppercase">
+                  Khối Lượng Hàng / Tải Trọng (kg)
+                </label>
+                <div class="input-group">
+                  <input type="number" id="manual-reg-weight" class="form-control" placeholder="VD: 15000" min="0" step="10">
+                  <span class="input-group-text bg-light text-muted">kg</span>
+                </div>
+              </div>
+
+              <!-- Đơn vị / Nhà xe -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold text-dark small text-uppercase">
+                  Đơn Vị / Nhà Xe <span class="text-danger">*</span>
+                </label>
+                <input type="text" id="manual-reg-company" class="form-control fw-semibold" placeholder="Nhập tên nhà xe / doanh nghiệp" list="company-datalist" required>
+                <datalist id="company-datalist">
+                  <option value="VŨNG TÀU TRANSPORT">
+                  <option value="HẢI PHÒNG LOGISTICS">
+                  <option value="MAERSK LINE">
+                  <option value="SÀI GÒN CẢNG LOGISTICS">
+                  <option value="ĐỒNG NAI FREIGHT">
+                  <option value="BÌNH DƯƠNG LOGISTICS">
+                </datalist>
+              </div>
+
+              <!-- Tài xế -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold text-dark small text-uppercase">
+                  Họ Tên Tài Xế
+                </label>
+                <input type="text" id="manual-reg-driver-name" class="form-control" placeholder="VD: Nguyễn Văn A">
+              </div>
+
+              <!-- Số điện thoại -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold text-dark small text-uppercase">
+                  Số Điện Thoại Tài Xế
+                </label>
+                <input type="tel" id="manual-reg-driver-phone" class="form-control" placeholder="VD: 0912345678">
+              </div>
+
+              <!-- Ngày đăng ký / hẹn vào -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold text-dark small text-uppercase">
+                  Ngày Hẹn / Đăng Ký Vào Bãi
+                </label>
+                <input type="datetime-local" id="manual-reg-date" class="form-control">
+              </div>
+
+              <!-- Ghi chú -->
+              <div class="col-md-6">
+                <label class="form-label fw-bold text-dark small text-uppercase">
+                  Ghi Chú Đơn Hàng / Tờ Khai
+                </label>
+                <input type="text" id="manual-reg-note" class="form-control" placeholder="Ghi chú số seal, tờ khai hải quan...">
+              </div>
+            </div>
+
+            <!-- Nút hành động -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4 pt-3 border-top">
+              <button type="button" class="btn btn-outline-secondary px-3" onclick="resetManualRegForm()">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Xóa Trắng
+              </button>
+              <div class="d-flex gap-2">
+                <button type="submit" id="btn-submit-manual-reg" class="btn btn-primary fw-bold px-4 shadow-sm">
+                  <i class="bi bi-check2-circle me-1"></i> LƯU ĐĂNG KÝ PHƯƠNG TIỆN
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right column: Danh Sách Xe Vừa Đăng Ký Gần Đây & Hướng dẫn -->
+      <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-3 p-3 h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0 text-primary">
+              <i class="bi bi-clock-history me-1"></i>Xe Vừa Đăng Ký Gần Đây
+            </h6>
+            <button class="btn btn-sm btn-outline-secondary" onclick="loadRecentRegistrations()" title="Tải lại danh sách">
+              <i class="bi bi-arrow-clockwise"></i>
             </button>
           </div>
 
-          <div class="table-responsive bg-white rounded-2 border mt-2">
+          <div class="table-responsive" style="max-height: 440px;">
             <table class="data-table small">
               <thead>
                 <tr>
                   <th>Biển Số</th>
                   <th>Loại Xe</th>
-                  <th>Nghiệp Vụ</th>
-                  <th>Số Container</th>
-                  <th>Khối Lượng (kg)</th>
                   <th>Nhà Xe</th>
-                  <th>Tài Xế</th>
-                  <th>Ngày Đăng Ký</th>
+                  <th>Trạng Thái</th>
+                  <th>Thao Tác</th>
                 </tr>
               </thead>
-              <tbody id="import-preview-tbody"></tbody>
+              <tbody id="recent-manual-reg-tbody">
+                <tr><td colspan="5" class="text-center py-3 text-muted">Đang tải danh sách...</td></tr>
+              </tbody>
             </table>
           </div>
-          <small class="text-muted mt-2 d-block">* Hiển thị xem trước tối đa 10 dòng đầu tiên.</small>
+
+          <div class="mt-3 p-2 bg-light rounded-2 border small text-muted">
+            <div class="d-flex align-items-center gap-2 mb-1 text-dark fw-bold">
+              <i class="bi bi-lightbulb-fill text-warning"></i> Quy trình sau khi lưu:
+            </div>
+            1. Xe đăng ký thành công sẽ có trạng thái <span class="badge bg-secondary">REGISTERED</span>.<br>
+            2. Có thể bấm <b>Duyệt Vào</b> ngay trong bảng trên để chuyển sang Cổng Vào.<br>
+            3. Nếu xe đang ở trong bãi, lượt đăng ký này sẽ kích hoạt sau khi xe xuất bãi.
+          </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Batch History List (CLAUDE.md Section 9) -->
-    <div class="col-lg-12">
-      <div class="card border-0 shadow-sm rounded-3 p-3">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Lịch Sử Các Đợt Import (IMPORT_BATCH)</h6>
-          <button class="btn btn-sm btn-outline-secondary" onclick="loadImportBatches()"><i class="bi bi-arrow-clockwise"></i> Làm mới</button>
+  <!-- =========================================================================
+       SUB-TAB 2: IMPORT TỪ FILE EXCEL
+       ========================================================================= -->
+  <div id="panel-excel-import" style="display: none;">
+    <div class="row g-4">
+      <!-- Import Form & File Upload -->
+      <div class="col-lg-12">
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-3">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <div>
+              <h5 class="fw-bold mb-1 text-primary"><i class="bi bi-file-earmark-excel me-2"></i>IMPORT DANH SÁCH XE TỪ EXCEL</h5>
+              <p class="text-muted small mb-0">Quy trình bắt buộc: Tải file &rarr; Kiểm tra dữ liệu (Validate) &rarr; Xem trước (Preview) &rarr; Xác nhận Commit Database</p>
+            </div>
+            <button class="btn btn-outline-success btn-sm" onclick="downloadSampleExcel()">
+              <i class="bi bi-download me-1"></i> Tải Mẫu File Excel Chuẩn
+            </button>
+          </div>
+
+          <!-- Upload & Settings -->
+          <div class="row g-3 align-items-end mb-3">
+            <div class="col-md-5">
+              <label class="form-label fw-semibold small text-uppercase">Chọn file Excel (.xlsx, .xls, .csv) <span class="text-danger">*</span></label>
+              <input type="file" id="excel-file-input" class="form-control" accept=".xlsx, .xls, .csv" onchange="handleExcelFileSelect(this)">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold small text-uppercase">Đơn Vị / Nhà Xe (Mặc định)</label>
+              <input type="text" id="import-company-input" class="form-control" placeholder="Tên đơn vị vận tải nếu file không có">
+            </div>
+            <div class="col-md-3">
+              <button id="btn-validate-excel" class="btn btn-primary w-100 fw-semibold" onclick="processExcelUpload()" disabled>
+                <i class="bi bi-search me-1"></i> Kiểm Tra Dữ Liệu
+              </button>
+            </div>
+          </div>
+
+          <!-- Validation Error Alert Box (CLAUDE.md Section 8) -->
+          <div id="import-error-container" class="alert alert-danger d-none mt-3" role="alert">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <i class="bi bi-exclamation-octagon-fill fs-5"></i>
+              <strong class="fs-6">IMPORT THẤT BẠI - PHÁT HIỆN LỖI DỮ LIỆU</strong>
+            </div>
+            <p class="small mb-2">Vui lòng sửa các lỗi sau trong file Excel trước khi tiếp tục:</p>
+            <div class="table-responsive bg-white rounded-2 border">
+              <table class="table table-sm table-striped mb-0 small">
+                <thead class="table-danger">
+                  <tr>
+                    <th style="width: 80px;">Dòng</th>
+                    <th style="width: 150px;">Cột Lỗi</th>
+                    <th style="width: 180px;">Giá Trị Nhận Được</th>
+                    <th>Nội Dung Lỗi Chi Tiết</th>
+                  </tr>
+                </thead>
+                <tbody id="import-error-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Preview & Confirm Box (CLAUDE.md Section 6, 8) -->
+          <div id="import-preview-container" class="card border-success border-2 bg-light p-3 d-none mt-3">
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+              <div>
+                <span class="badge bg-success px-2 py-1 me-2"><i class="bi bi-check-circle me-1"></i>DỮ LIỆU HỢP LỆ</span>
+                <strong class="text-dark" id="import-preview-summary">0 dòng hợp lệ sẵn sàng import.</strong>
+              </div>
+              <button id="btn-confirm-import" class="btn btn-success fw-bold px-4" onclick="confirmCommitImport()">
+                <i class="bi bi-database-check me-1"></i> XÁC NHẬN IMPORT VÀO DATABASE
+              </button>
+            </div>
+
+            <div class="table-responsive bg-white rounded-2 border mt-2">
+              <table class="data-table small">
+                <thead>
+                  <tr>
+                    <th>Biển Số</th>
+                    <th>Loại Xe</th>
+                    <th>Nghiệp Vụ</th>
+                    <th>Số Container</th>
+                    <th>Khối Lượng (kg)</th>
+                    <th>Nhà Xe</th>
+                    <th>Tài Xế</th>
+                    <th>Ngày Đăng Ký</th>
+                  </tr>
+                </thead>
+                <tbody id="import-preview-tbody"></tbody>
+              </table>
+            </div>
+            <small class="text-muted mt-2 d-block">* Hiển thị xem trước tối đa 10 dòng đầu tiên.</small>
+          </div>
         </div>
+      </div>
 
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Mã Batch</th>
-                <th>Tên File</th>
-                <th>Nhà Xe</th>
-                <th>Thời Gian Import</th>
-                <th>Người Import</th>
-                <th>Tổng Dòng</th>
-                <th>Thành Công</th>
-                <th>Lỗi</th>
-                <th>Trạng Thái</th>
-              </tr>
-            </thead>
-            <tbody id="import-batches-tbody">
-              <tr><td colspan="9" class="text-center py-3 text-muted">Đang tải lịch sử import...</td></tr>
-            </tbody>
-          </table>
+      <!-- Batch History List (CLAUDE.md Section 9) -->
+      <div class="col-lg-12">
+        <div class="card border-0 shadow-sm rounded-3 p-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Lịch Sử Các Đợt Import (IMPORT_BATCH)</h6>
+            <button class="btn btn-sm btn-outline-secondary" onclick="loadImportBatches()"><i class="bi bi-arrow-clockwise"></i> Làm mới</button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Mã Batch</th>
+                  <th>Tên File</th>
+                  <th>Nhà Xe</th>
+                  <th>Thời Gian Import</th>
+                  <th>Người Import</th>
+                  <th>Tổng Dòng</th>
+                  <th>Thành Công</th>
+                  <th>Lỗi</th>
+                  <th>Trạng Thái</th>
+                </tr>
+              </thead>
+              <tbody id="import-batches-tbody">
+                <tr><td colspan="9" class="text-center py-3 text-muted">Đang tải lịch sử import...</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -2472,7 +2683,10 @@ function navigateTo(viewName) {
   if (viewName === 'gatein') loadRecentGateIns();
   if (viewName === 'yard') loadVehiclesInYard();
   if (viewName === 'gateout') loadReadyToExitVehicles();
-  if (viewName === 'import') loadImportBatches();
+  if (viewName === 'import') {
+    loadImportBatches();
+    loadRecentRegistrations();
+  }
   if (viewName === 'reports') {
     loadCompaniesForReport();
     loadCompletedReport();
@@ -2766,11 +2980,30 @@ function searchGateInVehicle() {
       document.getElementById('gatein-inspection-card').style.display = 'none';
       document.getElementById('gatein-placeholder').style.display = 'block';
       AppState.currentInspectingGateIn = null;
-      Swal.fire({
-        icon: 'warning',
-        title: 'Từ Chối Vào Bãi',
-        html: err.message || 'Biển số chưa được đăng ký hoặc xe đang ở trong bãi.'
-      });
+
+      const isAlreadyInYard = (err.message || '').indexOf('XE CHƯA RA KHỎI BÃI') !== -1;
+      if (isAlreadyInYard) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Từ Chối Vào Bãi',
+          html: err.message
+        });
+      } else {
+        Swal.fire({
+          icon: 'question',
+          title: 'Chưa Có Đăng Ký',
+          html: (err.message || 'Biển số chưa được đăng ký trong hệ thống.') + '<br><br><b>Bạn có muốn đăng ký mới cho xe này ngay không?</b>',
+          showCancelButton: true,
+          confirmButtonColor: '#2563eb',
+          cancelButtonColor: '#64748b',
+          confirmButtonText: '<i class="bi bi-pencil-square me-1"></i> Đăng Ký Xe Này Ngay',
+          cancelButtonText: 'Đóng'
+        }).then(result => {
+          if (result.isConfirmed) {
+            quickRegisterFromGateIn(plate);
+          }
+        });
+      }
     });
 }
 
@@ -3320,6 +3553,232 @@ function downloadSampleExcel() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'MauDangKyXe');
   XLSX.writeFile(wb, 'Mau_Dang_Ky_Xe_Vao_Bai.xlsx');
+}
+
+// ==========================================================================
+// 7.1. MANUAL REGISTRATION LOGIC (ĐĂNG KÝ XE TRỰC TIẾP)
+// ==========================================================================
+
+function switchRegImportTab(tab) {
+  const panelManual = document.getElementById('panel-manual-registration');
+  const panelExcel = document.getElementById('panel-excel-import');
+  const btnManual = document.getElementById('subtab-btn-manual');
+  const btnExcel = document.getElementById('subtab-btn-excel');
+
+  if (!panelManual || !panelExcel) return;
+
+  if (tab === 'manual') {
+    panelManual.style.display = 'block';
+    panelExcel.style.display = 'none';
+    if (btnManual) {
+      btnManual.className = 'btn btn-sm px-3 fw-bold btn-primary';
+    }
+    if (btnExcel) {
+      btnExcel.className = 'btn btn-sm px-3 fw-bold btn-light text-secondary';
+    }
+    loadRecentRegistrations();
+  } else {
+    panelManual.style.display = 'none';
+    panelExcel.style.display = 'block';
+    if (btnManual) {
+      btnManual.className = 'btn btn-sm px-3 fw-bold btn-light text-secondary';
+    }
+    if (btnExcel) {
+      btnExcel.className = 'btn btn-sm px-3 fw-bold btn-primary';
+    }
+    loadImportBatches();
+  }
+}
+
+function handleManualTypeChange(select) {
+  const containerInput = document.getElementById('manual-reg-container');
+  const containerLabel = document.getElementById('lbl-manual-container');
+  if (select && select.value === 'CONTAINER') {
+    if (containerLabel) containerLabel.innerHTML = 'Số Container <span class="text-danger">*</span>';
+    if (containerInput) {
+      containerInput.setAttribute('required', 'required');
+      containerInput.placeholder = 'VD: TCLU1234567 (Bắt buộc cho xe Container)';
+    }
+  } else {
+    if (containerLabel) containerLabel.innerHTML = 'Số Container';
+    if (containerInput) {
+      containerInput.removeAttribute('required');
+      containerInput.placeholder = 'VD: TCLU1234567';
+    }
+  }
+}
+
+function handleManualPlateInput(input) {
+  input.value = input.value.toUpperCase();
+  const val = input.value.trim();
+  const feedback = document.getElementById('manual-reg-plate-feedback');
+  if (!feedback) return;
+
+  if (val.length >= 4) {
+    const norm = val.replace(/[\s\-\.]/g, '').toUpperCase();
+    Api.call('apiGetVehiclesInYard')
+      .then(res => {
+        const yardList = res.data || [];
+        const inYard = yardList.find(y => (y.licensePlate || '').replace(/[\s\-\.]/g, '').toUpperCase() === norm);
+        if (inYard) {
+          feedback.style.display = 'block';
+          feedback.innerHTML = `<span class="badge bg-warning-subtle text-warning border border-warning px-2 py-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Lưu ý: Xe này hiện đang ở trong bãi (Số vé: ${inYard.ticketNo || '—'}). Lượt đăng ký mới này sẽ sẵn sàng khi xe hoàn tất xuất bãi.</span>`;
+        } else {
+          feedback.style.display = 'none';
+        }
+      })
+      .catch(() => {});
+  } else {
+    feedback.style.display = 'none';
+  }
+}
+
+function resetManualRegForm() {
+  const form = document.getElementById('form-manual-registration');
+  if (form) form.reset();
+  const feedback = document.getElementById('manual-reg-plate-feedback');
+  if (feedback) feedback.style.display = 'none';
+
+  const now = new Date();
+  const localIso = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  const dateInput = document.getElementById('manual-reg-date');
+  if (dateInput) dateInput.value = localIso;
+
+  handleManualTypeChange(document.getElementById('manual-reg-type') || { value: 'TRUCK' });
+}
+
+function submitManualRegistration() {
+  const plate = document.getElementById('manual-reg-plate').value.trim();
+  const vType = document.getElementById('manual-reg-type').value;
+  const direction = document.getElementById('manual-reg-direction').value;
+  const container = document.getElementById('manual-reg-container').value.trim();
+  const weight = document.getElementById('manual-reg-weight').value.trim();
+  const company = document.getElementById('manual-reg-company').value.trim();
+  const driverName = document.getElementById('manual-reg-driver-name').value.trim();
+  const driverPhone = document.getElementById('manual-reg-driver-phone').value.trim();
+  const regDate = document.getElementById('manual-reg-date').value;
+  const note = document.getElementById('manual-reg-note').value.trim();
+
+  if (!plate) {
+    Swal.fire({ icon: 'warning', title: 'Thiếu thông tin', text: 'Vui lòng nhập Biển số xe.' });
+    return;
+  }
+
+  if (vType === 'CONTAINER' && !container) {
+    Swal.fire({ icon: 'warning', title: 'Thiếu thông tin', text: 'Loại phương tiện CONTAINER bắt buộc phải nhập Số Container.' });
+    return;
+  }
+
+  if (!company) {
+    Swal.fire({ icon: 'warning', title: 'Thiếu thông tin', text: 'Vui lòng nhập Đơn vị / Nhà xe.' });
+    return;
+  }
+
+  const payload = {
+    LicensePlate: plate,
+    VehicleType: vType,
+    CargoDirection: direction,
+    ContainerNo: container,
+    WeightKg: weight,
+    Company: company,
+    DriverName: driverName,
+    DriverPhone: driverPhone,
+    RegistrationDate: regDate,
+    Note: note
+  };
+
+  const btn = document.getElementById('btn-submit-manual-reg');
+  if (btn) btn.disabled = true;
+
+  Api.call('apiRegisterVehicle', [payload])
+    .then(res => {
+      if (btn) btn.disabled = false;
+      const registeredPlate = res.data ? res.data.LicensePlate : plate;
+      Swal.fire({
+        icon: 'success',
+        title: 'Đăng Ký Thành Công!',
+        html: `Phương tiện <b>${registeredPlate}</b> đã được ghi nhận vào hệ thống.<br><br>
+               <span class="text-muted small">${res.message}</span>`,
+        showCancelButton: true,
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: '<i class="bi bi-box-arrow-in-right me-1"></i> Chuyển Sang Cổng Vào Duyệt Ngay',
+        cancelButtonText: 'Đăng Ký Xe Khác'
+      }).then(action => {
+        const savedCompany = company;
+        resetManualRegForm();
+        const compInput = document.getElementById('manual-reg-company');
+        if (compInput) compInput.value = savedCompany;
+
+        loadRecentRegistrations();
+
+        if (action.isConfirmed) {
+          proceedToGateIn(registeredPlate);
+        }
+      });
+    })
+    .catch(err => {
+      if (btn) btn.disabled = false;
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi Đăng Ký',
+        html: err.message || 'Không thể đăng ký phương tiện.'
+      });
+    });
+}
+
+function loadRecentRegistrations() {
+  const tbody = document.getElementById('recent-manual-reg-tbody');
+  if (!tbody) return;
+
+  Api.call('apiGetVehicles', [{ status: 'REGISTERED' }])
+    .then(res => {
+      const list = (res.data || []).slice(0, 10);
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">Chưa có phương tiện nào đăng ký gần đây.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(v => `
+        <tr>
+          <td class="fw-bold text-primary">${v.LicensePlate}</td>
+          <td><span class="badge bg-light text-dark border">${v.VehicleType}</span></td>
+          <td class="text-truncate" style="max-width: 110px;" title="${v.Company}">${v.Company}</td>
+          <td><span class="badge-status badge-${v.Status}">${v.Status}</span></td>
+          <td>
+            <button class="btn btn-outline-primary btn-sm py-0 px-2 fw-semibold" onclick="proceedToGateIn('${v.LicensePlate}')" title="Duyệt cho xe vào bãi">
+              <i class="bi bi-box-arrow-in-right"></i> Duyệt
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    })
+    .catch(() => {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-danger">Không thể tải danh sách xe đăng ký.</td></tr>';
+    });
+}
+
+function proceedToGateIn(plate) {
+  navigateTo('gatein');
+  const input = document.getElementById('gatein-plate-input');
+  if (input) {
+    input.value = plate;
+    searchGateInVehicle();
+  }
+}
+
+function quickRegisterFromGateIn(prefillPlate) {
+  const plateToFill = prefillPlate || (document.getElementById('gatein-plate-input') ? document.getElementById('gatein-plate-input').value.trim() : '');
+  navigateTo('import');
+  switchRegImportTab('manual');
+  if (plateToFill) {
+    const manualInput = document.getElementById('manual-reg-plate');
+    if (manualInput) {
+      manualInput.value = plateToFill.toUpperCase();
+      handleManualPlateInput(manualInput);
+      manualInput.focus();
+    }
+  }
 }
 
 // ==========================================================================
@@ -4083,6 +4542,41 @@ const MockBackend = (function() {
         }
       };
     },
+    apiRegisterVehicle: (data) => {
+      const db = getDB();
+      const norm = (data.LicensePlate || '').replace(/[\s\-\.]/g, '').toUpperCase();
+      const now = new Date();
+      const nowStr = ('0' + now.getDate()).slice(-2) + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + now.getFullYear() + ' ' + ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2) + ':' + ('0' + now.getSeconds()).slice(-2);
+      
+      const inYard = (db.VEHICLES || []).find(v => (v.LicensePlate || '').replace(/[\s\-\.]/g, '').toUpperCase() === norm && (v.Status === 'IN_YARD' || v.Status === 'READY_TO_EXIT'));
+
+      const newVehicle = {
+        VehicleID: 'VH-' + Date.now(),
+        BatchID: 'MANUAL',
+        CargoDirection: data.CargoDirection || 'EXPORT',
+        VehicleType: data.VehicleType || 'TRUCK',
+        LicensePlate: norm,
+        ContainerNo: data.ContainerNo || '',
+        WeightKg: data.WeightKg || '',
+        Company: data.Company || 'VẬN TẢI',
+        DriverName: data.DriverName || '',
+        DriverPhone: data.DriverPhone || '',
+        RegistrationDate: data.RegistrationDate || nowStr,
+        Status: 'REGISTERED',
+        Note: data.Note || '',
+        CreatedAt: nowStr,
+        CreatedBy: (AppState.currentUser ? AppState.currentUser.email : 'admin@dtk.local')
+      };
+
+      db.VEHICLES.unshift(newVehicle);
+      saveDB(db);
+
+      const msg = inYard
+        ? `Đăng ký xe ${norm} thành công! (Lưu ý: Xe hiện đang ở trong bãi, lượt đăng ký mới này sẽ sẵn sàng khi xe xuất bãi).`
+        : `Đăng ký xe ${norm} thành công! Xe đã sẵn sàng duyệt vào bãi tại Cổng Vào.`;
+
+      return { success: true, message: msg, data: newVehicle };
+    },
     apiSearchGateIn: (plate) => {
       const db = getDB();
       const norm = plate.replace(/[\s\-\.]/g, '').toUpperCase();
@@ -4330,6 +4824,14 @@ const MockBackend = (function() {
       return { success: true, message: 'Đã import ' + batchData.validRowsCount + ' xe vào Database!' };
     },
     apiGetImportBatches: () => ({ success: true, data: getDB().BATCHES }),
+    apiGetVehicles: (filters) => {
+      const db = getDB();
+      let list = db.VEHICLES || [];
+      if (filters && filters.status) {
+        list = list.filter(v => v.Status === filters.status);
+      }
+      return { success: true, data: list };
+    },
     apiGetCompanies: () => {
       const db = getDB();
       const set = new Set();

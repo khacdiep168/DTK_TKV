@@ -221,6 +221,17 @@ function apiCancelVehicle(vehicleId, reason) {
 }
 
 /**
+ * API Đăng ký phương tiện trực tiếp (thủ công qua form)
+ */
+function apiRegisterVehicle(vehicleData) {
+  try {
+    return VehicleService.createVehicleRegistration(vehicleData);
+  } catch (err) {
+    return responseError(err.message);
+  }
+}
+
+/**
  * API Tra cứu xe chờ Gate In
  */
 function apiSearchGateIn(plate) {

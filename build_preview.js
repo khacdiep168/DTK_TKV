@@ -84,8 +84,8 @@ const html = `<!DOCTYPE html>
         <li class="nav-section-title">Dữ liệu & Báo cáo</li>
         <li class="nav-item">
           <a class="nav-link" id="nav-import" onclick="navigateTo('import')">
-            <i class="bi bi-file-earmark-arrow-up"></i>
-            <span>Import Excel</span>
+            <i class="bi bi-card-checklist"></i>
+            <span>Đăng Ký & Import</span>
           </a>
         </li>
         <li class="nav-item">
