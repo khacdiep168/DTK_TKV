@@ -1497,31 +1497,91 @@ body {
     </div>
 
     <!-- Filters Toolbar -->
-    <div class="row g-2 align-items-center">
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold text-muted mb-1">Nghiệp Vụ</label>
-        <select id="report-filter-direction" class="form-select form-select-sm" onchange="loadCompletedReport()">
-          <option value="ALL">-- Tất cả chiều --</option>
-          <option value="IMPORT">Nhập Khẩu</option>
-          <option value="EXPORT">Xuất Khẩu</option>
-        </select>
+    <div class="border rounded-3 p-3 bg-light mb-2">
+      <!-- Hàng 1: Phân loại, Nhà Xe, Từ Khóa -->
+      <div class="row g-2 mb-3">
+        <div class="col-lg-3 col-md-6">
+          <label class="form-label small fw-semibold text-muted mb-1">
+            <i class="bi bi-arrow-left-right me-1 text-primary"></i>Nghiệp Vụ
+          </label>
+          <select id="report-filter-direction" class="form-select form-select-sm" onchange="loadCompletedReport()">
+            <option value="ALL">-- Tất cả chiều --</option>
+            <option value="IMPORT">Nhập Khẩu</option>
+            <option value="EXPORT">Xuất Khẩu</option>
+          </select>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <label class="form-label small fw-semibold text-muted mb-1">
+            <i class="bi bi-truck me-1 text-primary"></i>Loại Phương Tiện
+          </label>
+          <select id="report-filter-vtype" class="form-select form-select-sm" onchange="loadCompletedReport()">
+            <option value="ALL">-- Tất cả loại xe --</option>
+            <option value="CONTAINER">Container</option>
+            <option value="XE_TAI_NHO">Xe Tải Nhỏ (&lt; 3.5T)</option>
+            <option value="XE_TAI_TRUNG">Xe Tải Trung (3.5 - 8T)</option>
+            <option value="XE_TAI_NANG">Xe Tải Nặng (&gt; 8T)</option>
+            <option value="XE_DAU_KEO">Xe Đầu Kéo</option>
+            <option value="XE_CON">Xe Con / Bán Tải</option>
+            <option value="TRUCK">Xe Tải Chung</option>
+            <option value="KHAC">Xe Đặc Chủng / Khác</option>
+          </select>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <label class="form-label small fw-semibold text-muted mb-1">
+            <i class="bi bi-buildings me-1 text-primary"></i>Nhà Xe / Đơn Vị Vận Tải
+          </label>
+          <select id="report-filter-company" class="form-select form-select-sm" onchange="loadCompletedReport()">
+            <option value="ALL">-- Tất cả nhà xe / đơn vị --</option>
+          </select>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <label class="form-label small fw-semibold text-muted mb-1">
+            <i class="bi bi-search me-1 text-primary"></i>Tìm Biển Số / Số Cont
+          </label>
+          <input type="text" id="report-filter-keyword" class="form-control form-control-sm" placeholder="Nhập biển số hoặc số cont..." onkeyup="loadCompletedReport()">
+        </div>
       </div>
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold text-muted mb-1">Loại Phương Tiện</label>
-        <select id="report-filter-vtype" class="form-select form-select-sm" onchange="loadCompletedReport()">
-          <option value="ALL">-- Tất cả loại xe --</option>
-          <option value="CONTAINER">Container</option>
-          <option value="TRUCK">Xe Tải</option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label small fw-semibold text-muted mb-1">Tìm Nhà Xe / Đơn Vị</label>
-        <input type="text" id="report-filter-company" class="form-control form-control-sm" placeholder="Tên nhà xe hoặc từ khóa..." onkeyup="loadCompletedReport()">
-      </div>
-      <div class="col-md-2 d-flex align-items-end">
-        <button class="btn btn-primary btn-sm w-100" onclick="loadCompletedReport()">
-          <i class="bi bi-filter me-1"></i> Lọc Dữ Liệu
-        </button>
+
+      <!-- Hàng 2: Lọc theo Ngày Vào và Ngày Ra -->
+      <div class="row g-2 align-items-end">
+        <!-- Lọc theo Ngày Vào -->
+        <div class="col-lg-5 col-md-6">
+          <label class="form-label small fw-semibold text-muted mb-1">
+            <i class="bi bi-calendar-event me-1 text-success"></i>Lọc Theo Ngày Vào (Gate In)
+          </label>
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-white small">Từ</span>
+            <input type="date" id="report-filter-in-from" class="form-control" onchange="loadCompletedReport()">
+            <span class="input-group-text bg-white small">Đến</span>
+            <input type="date" id="report-filter-in-to" class="form-control" onchange="loadCompletedReport()">
+          </div>
+        </div>
+
+        <!-- Lọc theo Ngày Ra -->
+        <div class="col-lg-5 col-md-6">
+          <label class="form-label small fw-semibold text-muted mb-1">
+            <i class="bi bi-calendar-check me-1 text-danger"></i>Lọc Theo Ngày Ra (Gate Out)
+          </label>
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-white small">Từ</span>
+            <input type="date" id="report-filter-out-from" class="form-control" onchange="loadCompletedReport()">
+            <span class="input-group-text bg-white small">Đến</span>
+            <input type="date" id="report-filter-out-to" class="form-control" onchange="loadCompletedReport()">
+          </div>
+        </div>
+
+        <!-- Nút lọc và Đặt lại -->
+        <div class="col-lg-2 col-md-12 d-flex gap-1">
+          <button class="btn btn-primary btn-sm flex-fill fw-semibold" onclick="loadCompletedReport()" title="Áp dụng bộ lọc">
+            <i class="bi bi-funnel-fill me-1"></i> Lọc
+          </button>
+          <button class="btn btn-outline-secondary btn-sm px-2" onclick="resetReportFilters()" title="Đặt lại bộ lọc về mặc định">
+            <i class="bi bi-arrow-counterclockwise"></i>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -2413,7 +2473,10 @@ function navigateTo(viewName) {
   if (viewName === 'yard') loadVehiclesInYard();
   if (viewName === 'gateout') loadReadyToExitVehicles();
   if (viewName === 'import') loadImportBatches();
-  if (viewName === 'reports') loadCompletedReport();
+  if (viewName === 'reports') {
+    loadCompaniesForReport();
+    loadCompletedReport();
+  }
   if (viewName === 'settings') switchSettingsTab('brand');
 }
 
@@ -3254,16 +3317,93 @@ function downloadSampleExcel() {
 // 8. REPORTS LOGIC
 // ==========================================================================
 
-function loadCompletedReport() {
-  const dirFilter = document.getElementById('report-filter-direction').value;
-  const vtypeFilter = document.getElementById('report-filter-vtype').value;
-  const companyFilter = (document.getElementById('report-filter-company').value || '').trim();
+function loadCompaniesForReport() {
+  Api.call('apiGetCompanies')
+    .then(res => {
+      if (res && res.data) {
+        populateCompanyDropdown(res.data);
+      }
+    })
+    .catch(() => {});
+}
 
-  Api.call('apiGetCompletedReport', [{ cargoDirection: dirFilter, vehicleType: vtypeFilter, company: companyFilter }])
+function populateCompanyDropdown(companies) {
+  const compSelect = document.getElementById('report-filter-company');
+  if (!compSelect) return;
+
+  const currentVal = compSelect.value || 'ALL';
+  let html = '<option value="ALL">-- Tất cả nhà xe / đơn vị --</option>';
+
+  if (Array.isArray(companies)) {
+    companies.forEach(c => {
+      if (c && String(c).trim() && String(c).trim() !== '—') {
+        const val = String(c).trim();
+        html += `<option value="${val}">${val}</option>`;
+      }
+    });
+  }
+
+  compSelect.innerHTML = html;
+  if (currentVal && currentVal !== 'ALL') {
+    compSelect.value = currentVal;
+  }
+}
+
+function resetReportFilters() {
+  const dirEl = document.getElementById('report-filter-direction');
+  const vtypeEl = document.getElementById('report-filter-vtype');
+  const compEl = document.getElementById('report-filter-company');
+  const kwEl = document.getElementById('report-filter-keyword');
+  const inFromEl = document.getElementById('report-filter-in-from');
+  const inToEl = document.getElementById('report-filter-in-to');
+  const outFromEl = document.getElementById('report-filter-out-from');
+  const outToEl = document.getElementById('report-filter-out-to');
+
+  if (dirEl) dirEl.value = 'ALL';
+  if (vtypeEl) vtypeEl.value = 'ALL';
+  if (compEl) compEl.value = 'ALL';
+  if (kwEl) kwEl.value = '';
+  if (inFromEl) inFromEl.value = '';
+  if (inToEl) inToEl.value = '';
+  if (outFromEl) outFromEl.value = '';
+  if (outToEl) outToEl.value = '';
+
+  loadCompletedReport();
+}
+
+function loadCompletedReport() {
+  const dirFilter = document.getElementById('report-filter-direction')?.value || 'ALL';
+  const vtypeFilter = document.getElementById('report-filter-vtype')?.value || 'ALL';
+  const companyFilter = document.getElementById('report-filter-company')?.value || 'ALL';
+  const keywordFilter = (document.getElementById('report-filter-keyword')?.value || '').trim();
+  const inFrom = document.getElementById('report-filter-in-from')?.value || '';
+  const inTo = document.getElementById('report-filter-in-to')?.value || '';
+  const outFrom = document.getElementById('report-filter-out-from')?.value || '';
+  const outTo = document.getElementById('report-filter-out-to')?.value || '';
+
+  const filterPayload = {
+    cargoDirection: dirFilter,
+    vehicleType: vtypeFilter,
+    company: companyFilter,
+    keyword: keywordFilter,
+    gateInFrom: inFrom,
+    gateInTo: inTo,
+    gateOutFrom: outFrom,
+    gateOutTo: outTo
+  };
+
+  Api.call('apiGetCompletedReport', [filterPayload])
     .then(res => {
       const list = res.data || [];
       const tbody = document.getElementById('report-completed-tbody');
       if (!tbody) return;
+
+      // Tự động gom các nhà xe duy nhất nếu dropdown chưa có danh sách đầy đủ
+      const compSelect = document.getElementById('report-filter-company');
+      if (compSelect && compSelect.options.length <= 1) {
+        const uniqueCompanies = [...new Set(list.map(i => i.company).filter(c => c && c !== '—'))].sort();
+        populateCompanyDropdown(uniqueCompanies);
+      }
 
       const totalDays = list.reduce((s, i) => s + (Number(i.chargeDays) || 0), 0);
       const totalRev = list.reduce((s, i) => s + (Number(i.totalAmount) || 0), 0);
@@ -3273,7 +3413,7 @@ function loadCompletedReport() {
       document.getElementById('report-sum-revenue').textContent = totalRev.toLocaleString('vi-VN') + ' VNĐ';
 
       if (list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="12" class="text-center py-4 text-muted">Không có dữ liệu phù hợp với bộ lọc.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" class="text-center py-4 text-muted">Không có dữ liệu phù hợp với bộ lọc ngày và điều kiện đã chọn.</td></tr>';
         return;
       }
 
@@ -3284,9 +3424,9 @@ function loadCompletedReport() {
           <td><span class="badge bg-light text-dark border">${item.vehicleType}</span></td>
           <td><span class="badge-dir-${String(item.cargoDirection).toLowerCase()}">${item.cargoDirection}</span></td>
           <td>${item.containerNo || '—'}</td>
-          <td>${item.company || '—'}</td>
-          <td class="small">${item.gateInTime}</td>
-          <td class="small">${item.gateOutTime}</td>
+          <td><strong class="text-primary">${item.company || '—'}</strong></td>
+          <td class="small text-success fw-semibold">${item.gateInTime}</td>
+          <td class="small text-danger fw-semibold">${item.gateOutTime}</td>
           <td class="small">${item.totalHours ? (item.totalHours + ' giờ') : '—'}</td>
           <td class="fw-bold text-primary">${item.chargeDays}</td>
           <td>${Number(item.unitPrice).toLocaleString()} đ</td>
@@ -4151,9 +4291,20 @@ const MockBackend = (function() {
       return { success: true, message: 'Đã import ' + batchData.validRowsCount + ' xe vào Database!' };
     },
     apiGetImportBatches: () => ({ success: true, data: getDB().BATCHES }),
-    apiGetCompletedReport: () => {
+    apiGetCompanies: () => {
       const db = getDB();
-      const list = db.FEES.map(f => {
+      const set = new Set();
+      (db.VEHICLES || []).forEach(v => {
+        if (v.Company && String(v.Company).trim() && String(v.Company).trim() !== '—') {
+          set.add(String(v.Company).trim());
+        }
+      });
+      return { success: true, data: Array.from(set).sort() };
+    },
+    apiGetCompletedReport: (filters) => {
+      filters = filters || {};
+      const db = getDB();
+      let list = db.FEES.map(f => {
         const v = db.VEHICLES.find(i => i.VehicleID === f.VehicleID) || {};
         return {
           feeId: f.FeeID,
@@ -4171,6 +4322,64 @@ const MockBackend = (function() {
           formattedTotalAmount: f.TotalAmount.toLocaleString('vi-VN') + ' VNĐ'
         };
       });
+
+      // Lọc theo Nghiệp Vụ
+      if (filters.cargoDirection && filters.cargoDirection !== 'ALL') {
+        list = list.filter(i => i.cargoDirection === filters.cargoDirection);
+      }
+      // Lọc theo Loại Phương Tiện
+      if (filters.vehicleType && filters.vehicleType !== 'ALL') {
+        list = list.filter(i => i.vehicleType === filters.vehicleType);
+      }
+      // Lọc theo Nhà Xe / Đơn Vị
+      if (filters.company && filters.company !== 'ALL') {
+        const comp = String(filters.company).trim().toLowerCase();
+        list = list.filter(i => String(i.company || '').trim().toLowerCase() === comp || String(i.company || '').toLowerCase().indexOf(comp) !== -1);
+      }
+      // Lọc theo Ngày Vào
+      if (filters.gateInFrom) {
+        const fromD = new Date(filters.gateInFrom);
+        fromD.setHours(0, 0, 0, 0);
+        list = list.filter(i => {
+          const d = parseDateTime(i.gateInTime);
+          return d && d >= fromD;
+        });
+      }
+      if (filters.gateInTo) {
+        const toD = new Date(filters.gateInTo);
+        toD.setHours(23, 59, 59, 999);
+        list = list.filter(i => {
+          const d = parseDateTime(i.gateInTime);
+          return d && d <= toD;
+        });
+      }
+      // Lọc theo Ngày Ra
+      if (filters.gateOutFrom) {
+        const fromD = new Date(filters.gateOutFrom);
+        fromD.setHours(0, 0, 0, 0);
+        list = list.filter(i => {
+          const d = parseDateTime(i.gateOutTime);
+          return d && d >= fromD;
+        });
+      }
+      if (filters.gateOutTo) {
+        const toD = new Date(filters.gateOutTo);
+        toD.setHours(23, 59, 59, 999);
+        list = list.filter(i => {
+          const d = parseDateTime(i.gateOutTime);
+          return d && d <= toD;
+        });
+      }
+      // Lọc theo Từ Khóa
+      if (filters.keyword && String(filters.keyword).trim()) {
+        const kw = String(filters.keyword).trim().toLowerCase().replace(/[\s\-\.]/g, '');
+        list = list.filter(i => {
+          const plate = String(i.licensePlate || '').toLowerCase().replace(/[\s\-\.]/g, '');
+          const cont = String(i.containerNo || '').toLowerCase().replace(/[\s\-\.]/g, '');
+          return plate.indexOf(kw) !== -1 || cont.indexOf(kw) !== -1;
+        });
+      }
+
       return { success: true, data: list };
     },
     apiGetPriceConfigs: () => ({ success: true, data: getDB().PRICES }),

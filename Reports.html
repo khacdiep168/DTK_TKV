@@ -12,31 +12,91 @@
     </div>
 
     <!-- Filters Toolbar -->
-    <div class="row g-2 align-items-center">
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold text-muted mb-1">Nghiệp Vụ</label>
-        <select id="report-filter-direction" class="form-select form-select-sm" onchange="loadCompletedReport()">
-          <option value="ALL">-- Tất cả chiều --</option>
-          <option value="IMPORT">Nhập Khẩu</option>
-          <option value="EXPORT">Xuất Khẩu</option>
-        </select>
+    <div class="border rounded-3 p-3 bg-light mb-2">
+      <!-- Hàng 1: Phân loại, Nhà Xe, Từ Khóa -->
+      <div class="row g-2 mb-3">
+        <div class="col-lg-3 col-md-6">
+          <label class="form-label small fw-semibold text-muted mb-1">
+            <i class="bi bi-arrow-left-right me-1 text-primary"></i>Nghiệp Vụ
+          </label>
+          <select id="report-filter-direction" class="form-select form-select-sm" onchange="loadCompletedReport()">
+            <option value="ALL">-- Tất cả chiều --</option>
+            <option value="IMPORT">Nhập Khẩu</option>
+            <option value="EXPORT">Xuất Khẩu</option>
+          </select>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <label class="form-label small fw-semibold text-muted mb-1">
+            <i class="bi bi-truck me-1 text-primary"></i>Loại Phương Tiện
+          </label>
+          <select id="report-filter-vtype" class="form-select form-select-sm" onchange="loadCompletedReport()">
+            <option value="ALL">-- Tất cả loại xe --</option>
+            <option value="CONTAINER">Container</option>
+            <option value="XE_TAI_NHO">Xe Tải Nhỏ (&lt; 3.5T)</option>
+            <option value="XE_TAI_TRUNG">Xe Tải Trung (3.5 - 8T)</option>
+            <option value="XE_TAI_NANG">Xe Tải Nặng (&gt; 8T)</option>
+            <option value="XE_DAU_KEO">Xe Đầu Kéo</option>
+            <option value="XE_CON">Xe Con / Bán Tải</option>
+            <option value="TRUCK">Xe Tải Chung</option>
+            <option value="KHAC">Xe Đặc Chủng / Khác</option>
+          </select>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <label class="form-label small fw-semibold text-muted mb-1">
+            <i class="bi bi-buildings me-1 text-primary"></i>Nhà Xe / Đơn Vị Vận Tải
+          </label>
+          <select id="report-filter-company" class="form-select form-select-sm" onchange="loadCompletedReport()">
+            <option value="ALL">-- Tất cả nhà xe / đơn vị --</option>
+          </select>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <label class="form-label small fw-semibold text-muted mb-1">
+            <i class="bi bi-search me-1 text-primary"></i>Tìm Biển Số / Số Cont
+          </label>
+          <input type="text" id="report-filter-keyword" class="form-control form-control-sm" placeholder="Nhập biển số hoặc số cont..." onkeyup="loadCompletedReport()">
+        </div>
       </div>
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold text-muted mb-1">Loại Phương Tiện</label>
-        <select id="report-filter-vtype" class="form-select form-select-sm" onchange="loadCompletedReport()">
-          <option value="ALL">-- Tất cả loại xe --</option>
-          <option value="CONTAINER">Container</option>
-          <option value="TRUCK">Xe Tải</option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label small fw-semibold text-muted mb-1">Tìm Nhà Xe / Đơn Vị</label>
-        <input type="text" id="report-filter-company" class="form-control form-control-sm" placeholder="Tên nhà xe hoặc từ khóa..." onkeyup="loadCompletedReport()">
-      </div>
-      <div class="col-md-2 d-flex align-items-end">
-        <button class="btn btn-primary btn-sm w-100" onclick="loadCompletedReport()">
-          <i class="bi bi-filter me-1"></i> Lọc Dữ Liệu
-        </button>
+
+      <!-- Hàng 2: Lọc theo Ngày Vào và Ngày Ra -->
+      <div class="row g-2 align-items-end">
+        <!-- Lọc theo Ngày Vào -->
+        <div class="col-lg-5 col-md-6">
+          <label class="form-label small fw-semibold text-muted mb-1">
+            <i class="bi bi-calendar-event me-1 text-success"></i>Lọc Theo Ngày Vào (Gate In)
+          </label>
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-white small">Từ</span>
+            <input type="date" id="report-filter-in-from" class="form-control" onchange="loadCompletedReport()">
+            <span class="input-group-text bg-white small">Đến</span>
+            <input type="date" id="report-filter-in-to" class="form-control" onchange="loadCompletedReport()">
+          </div>
+        </div>
+
+        <!-- Lọc theo Ngày Ra -->
+        <div class="col-lg-5 col-md-6">
+          <label class="form-label small fw-semibold text-muted mb-1">
+            <i class="bi bi-calendar-check me-1 text-danger"></i>Lọc Theo Ngày Ra (Gate Out)
+          </label>
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-white small">Từ</span>
+            <input type="date" id="report-filter-out-from" class="form-control" onchange="loadCompletedReport()">
+            <span class="input-group-text bg-white small">Đến</span>
+            <input type="date" id="report-filter-out-to" class="form-control" onchange="loadCompletedReport()">
+          </div>
+        </div>
+
+        <!-- Nút lọc và Đặt lại -->
+        <div class="col-lg-2 col-md-12 d-flex gap-1">
+          <button class="btn btn-primary btn-sm flex-fill fw-semibold" onclick="loadCompletedReport()" title="Áp dụng bộ lọc">
+            <i class="bi bi-funnel-fill me-1"></i> Lọc
+          </button>
+          <button class="btn btn-outline-secondary btn-sm px-2" onclick="resetReportFilters()" title="Đặt lại bộ lọc về mặc định">
+            <i class="bi bi-arrow-counterclockwise"></i>
+          </button>
+        </div>
       </div>
     </div>
   </div>

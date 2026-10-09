@@ -134,15 +134,69 @@ var ReportService = (function() {
       };
     });
 
+    // Lọc theo Nghiệp Vụ
     if (filterOptions.cargoDirection && filterOptions.cargoDirection !== 'ALL') {
       list = list.filter(r => r.cargoDirection === filterOptions.cargoDirection);
     }
+
+    // Lọc theo Loại Phương Tiện
     if (filterOptions.vehicleType && filterOptions.vehicleType !== 'ALL') {
       list = list.filter(r => r.vehicleType === filterOptions.vehicleType);
     }
-    if (filterOptions.company) {
-      const c = filterOptions.company.toLowerCase();
-      list = list.filter(r => r.company.toLowerCase().indexOf(c) !== -1);
+
+    // Lọc theo Nhà Xe / Đơn Vị (giống như Loại Phương Tiện)
+    if (filterOptions.company && filterOptions.company !== 'ALL') {
+      const targetCompany = String(filterOptions.company).trim().toLowerCase();
+      list = list.filter(r => {
+        const comp = String(r.company || '').trim().toLowerCase();
+        return comp === targetCompany || comp.indexOf(targetCompany) !== -1;
+      });
+    }
+
+    // Lọc theo Ngày Vào (Từ ngày -> Đến ngày)
+    if (filterOptions.gateInFrom) {
+      const fromDate = new Date(filterOptions.gateInFrom);
+      fromDate.setHours(0, 0, 0, 0);
+      list = list.filter(r => {
+        const d = parseDateTime(r.gateInTime);
+        return d && d >= fromDate;
+      });
+    }
+    if (filterOptions.gateInTo) {
+      const toDate = new Date(filterOptions.gateInTo);
+      toDate.setHours(23, 59, 59, 999);
+      list = list.filter(r => {
+        const d = parseDateTime(r.gateInTime);
+        return d && d <= toDate;
+      });
+    }
+
+    // Lọc theo Ngày Ra (Từ ngày -> Đến ngày)
+    if (filterOptions.gateOutFrom) {
+      const fromDate = new Date(filterOptions.gateOutFrom);
+      fromDate.setHours(0, 0, 0, 0);
+      list = list.filter(r => {
+        const d = parseDateTime(r.gateOutTime);
+        return d && d >= fromDate;
+      });
+    }
+    if (filterOptions.gateOutTo) {
+      const toDate = new Date(filterOptions.gateOutTo);
+      toDate.setHours(23, 59, 59, 999);
+      list = list.filter(r => {
+        const d = parseDateTime(r.gateOutTime);
+        return d && d <= toDate;
+      });
+    }
+
+    // Lọc theo Từ Khóa (Biển số xe, số container)
+    if (filterOptions.keyword && String(filterOptions.keyword).trim()) {
+      const kw = String(filterOptions.keyword).trim().toLowerCase().replace(/[\s\-\.]/g, '');
+      list = list.filter(r => {
+        const plate = String(r.licensePlate || '').toLowerCase().replace(/[\s\-\.]/g, '');
+        const cont = String(r.containerNo || '').toLowerCase().replace(/[\s\-\.]/g, '');
+        return plate.indexOf(kw) !== -1 || cont.indexOf(kw) !== -1;
+      });
     }
 
     // Sắp xếp theo ngày ra bãi mới nhất
@@ -155,9 +209,24 @@ var ReportService = (function() {
     return list;
   }
 
+  /**
+   * Lấy danh sách tên tất cả các nhà xe / đơn vị vận tải duy nhất trong hệ thống
+   */
+  function getAllCompanies() {
+    const allVehicles = DatabaseService.readAll(SHEETS.VEHICLE_REGISTER) || [];
+    const companies = new Set();
+    allVehicles.forEach(v => {
+      if (v.Company && String(v.Company).trim()) {
+        companies.add(String(v.Company).trim());
+      }
+    });
+    return Array.from(companies).sort();
+  }
+
   return {
     getDashboardKPIs: getDashboardKPIs,
-    getCompletedReport: getCompletedReport
+    getCompletedReport: getCompletedReport,
+    getAllCompanies: getAllCompanies
   };
 
 })();

@@ -320,6 +320,17 @@ function apiGetCompletedReport(filters) {
 }
 
 /**
+ * API Lấy danh sách Nhà Xe / Đơn Vị vận tải duy nhất trong hệ thống
+ */
+function apiGetCompanies() {
+  try {
+    return responseSuccess('Thành công', ReportService.getAllCompanies());
+  } catch (err) {
+    return responseError(err.message);
+  }
+}
+
+/**
  * API Lấy cấu hình bảng giá
  */
 function apiGetPriceConfigs() {
