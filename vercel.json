@@ -1,7 +1,12 @@
 {
   "version": 2,
-  "name": "dtk-bai-xe",
   "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

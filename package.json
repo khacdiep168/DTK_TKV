@@ -1,4 +1,10 @@
 {
+  "name": "dtk-bai-xe",
+  "version": "1.0.0",
+  "description": "Quản lý bãi xe hàng hóa xuất nhập khẩu - DTK LOGISTICS",
+  "scripts": {
+    "build": "echo 'Build OK'"
+  },
   "dependencies": {
     "xlsx": "^0.18.5"
   }
