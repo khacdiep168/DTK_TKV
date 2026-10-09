@@ -102,10 +102,12 @@ function apiSaveBrandSettings(brandData) {
     const nowStr = formatDateTime(new Date());
     const keys = ['APP_LOGO', 'COMPANY_NAME', 'APP_SUBTITLE', 'TICKET_FOOTER_NOTE'];
     
+    const existingRows = DatabaseService.readAll(SHEETS.SETTINGS);
+
     keys.forEach(key => {
       if (brandData && brandData[key] !== undefined) {
         const val = String(brandData[key]);
-        const existing = DatabaseService.findRow(SHEETS.SETTINGS, 'SettingKey', key);
+        const existing = existingRows.find(r => String(r.SettingKey).trim() === key);
         if (existing) {
           DatabaseService.updateRow(SHEETS.SETTINGS, 'SettingKey', key, {
             SettingValue: val,

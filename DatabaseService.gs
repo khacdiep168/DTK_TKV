@@ -168,6 +168,19 @@ var DatabaseService = (function() {
   }
 
   /**
+   * Tìm một dòng dữ liệu theo trường khóa
+   * @param {string} sheetName - Tên sheet
+   * @param {string} keyField - Tên cột khóa (ví dụ: SettingKey, UserID, ...)
+   * @param {*} keyValue - Giá trị cần tìm
+   * @returns {Object|null}
+   */
+  function findRow(sheetName, keyField, keyValue) {
+    const all = readAll(sheetName);
+    const searchVal = String(keyValue).trim();
+    return all.find(r => String(r[keyField]).trim() === searchVal) || null;
+  }
+
+  /**
    * Khối thực thi bảo vệ với LockService theo DATABASE.md Section 38, 58
    */
   function withLock(callback, timeoutMs) {
@@ -348,6 +361,7 @@ var DatabaseService = (function() {
     insertRow: insertRow,
     insertRows: insertRows,
     updateRow: updateRow,
+    findRow: findRow,
     withLock: withLock,
     initializeDatabase: initializeDatabase
   };
