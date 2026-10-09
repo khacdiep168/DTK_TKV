@@ -114,7 +114,7 @@ const html = `<!DOCTYPE html>
           <span class="page-title d-none d-sm-inline">Hệ Thống Quản Lý Bãi Xe</span>
         </div>
 
-        <div class="header-right">
+        <div class="header-right d-flex align-items-center gap-2">
           <div class="user-profile-badge">
             <div class="user-avatar" id="user-avatar-initial">A</div>
             <div class="d-none d-md-block text-start">
@@ -122,6 +122,9 @@ const html = `<!DOCTYPE html>
               <small class="text-muted" id="user-role-tag">ADMIN</small>
             </div>
           </div>
+          <button class="btn btn-outline-danger btn-sm px-2 py-1 ms-1 fw-semibold" title="Đăng Xuất Khỏi Hệ Thống" onclick="doLogout()">
+            <i class="bi bi-box-arrow-right"></i> <span class="d-none d-sm-inline">Đăng Xuất</span>
+          </button>
         </div>
       </header>
 

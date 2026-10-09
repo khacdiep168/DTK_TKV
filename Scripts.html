@@ -7,14 +7,28 @@
  */
 
 // Global State
+// Global State
 const AppState = {
-  currentUser: { id: 'USR-ADMIN-001', name: 'Quản Trị Viên', email: 'admin@dtk.local', role: 'ADMIN' },
+  currentUser: null,
   activeView: 'dashboard',
   isGasEnvironment: (typeof google !== 'undefined' && google.script && google.script.run),
   dashboardChart: null,
   cachedInYardList: [],
   selectedImportData: null,
-  currentInspectingGateIn: null
+  currentInspectingGateIn: null,
+  brandSettings: {
+    APP_LOGO: 'Logo/logo.png',
+    COMPANY_NAME: 'DTK LOGISTICS',
+    APP_SUBTITLE: 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU',
+    TICKET_FOOTER_NOTE: 'Quý khách vui lòng giữ phiếu để đối soát khi ra cổng. Mọi thắc mắc liên hệ Hotline trực ban.'
+  },
+  rolePermissions: {
+    'ADMIN': ['dashboard', 'gatein', 'yard', 'gateout', 'import', 'reports', 'settings'],
+    'GATE_IN': ['gatein', 'import'],
+    'YARD': ['yard'],
+    'GATE_OUT': ['gateout'],
+    'BAI': ['import', 'gatein']
+  }
 };
 
 // ==========================================================================
@@ -40,6 +54,10 @@ const Api = {
         // Standalone Local Mock Fallback
         setTimeout(() => {
           try {
+            if (!MockBackend[fnName]) {
+              reject({ success: false, message: 'API chưa được định nghĩa: ' + fnName });
+              return;
+            }
             const mockRes = MockBackend[fnName].apply(MockBackend, args);
             if (mockRes && mockRes.success === false) {
               reject(mockRes);
@@ -56,7 +74,7 @@ const Api = {
 };
 
 // ==========================================================================
-// 2. INITIALIZATION & ROUTING
+// 2. INITIALIZATION, AUTHENTICATION & ROUTING
 // ==========================================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -64,19 +82,57 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initApp() {
+  // 1. Nạp Brand Settings từ LocalStorage nếu có
+  try {
+    const savedBrand = localStorage.getItem('dtk_brand_settings');
+    if (savedBrand) {
+      AppState.brandSettings = Object.assign(AppState.brandSettings, JSON.parse(savedBrand));
+      applyBrandSettingsToUI();
+    }
+  } catch (e) {}
+
+  // 2. Kiểm tra phiên đăng nhập đã lưu
+  let savedSession = null;
+  try {
+    savedSession = JSON.parse(localStorage.getItem('dtk_session') || 'null');
+  } catch (e) {}
+
+  // 3. Gọi khởi tạo từ Server / Backend
   Api.call('apiGetInitialData')
     .then(res => {
-      if (res && res.data && res.data.user) {
-        AppState.currentUser = res.data.user;
-        updateUserUI();
+      if (res && res.data) {
+        if (res.data.settings) {
+          AppState.brandSettings = Object.assign(AppState.brandSettings, res.data.settings);
+          applyBrandSettingsToUI();
+        }
+        if (res.data.rolePermissions) {
+          AppState.rolePermissions = res.data.rolePermissions;
+        }
+
+        // Ưu tiên session đã đăng nhập, nếu chưa có thì dùng user trả về hoặc hiện Modal Login
+        if (savedSession && savedSession.isLoggedIn) {
+          AppState.currentUser = savedSession;
+        } else if (res.data.user && res.data.user.isLoggedIn) {
+          AppState.currentUser = res.data.user;
+        }
       }
-      loadDashboardKPIs('TODAY');
-      loadRecentGateIns();
+
+      if (AppState.currentUser && AppState.currentUser.isLoggedIn) {
+        updateUserUI();
+        applyUserPermissions(AppState.currentUser);
+      } else {
+        showLoginModal();
+      }
     })
     .catch(err => {
       console.warn('Init fallback:', err);
-      updateUserUI();
-      loadDashboardKPIs('TODAY');
+      if (savedSession && savedSession.isLoggedIn) {
+        AppState.currentUser = savedSession;
+        updateUserUI();
+        applyUserPermissions(AppState.currentUser);
+      } else {
+        showLoginModal();
+      }
     });
 }
 
@@ -85,12 +141,78 @@ function updateUserUI() {
   const nameEl = document.getElementById('user-display-name');
   const roleEl = document.getElementById('user-role-tag');
   const avatarEl = document.getElementById('user-avatar-initial');
-  if (nameEl) nameEl.textContent = u.name || u.email;
-  if (roleEl) roleEl.textContent = u.role || 'USER';
-  if (avatarEl) avatarEl.textContent = (u.name || u.email || 'A').charAt(0).toUpperCase();
+  if (u) {
+    if (nameEl) nameEl.textContent = u.name || u.email;
+    if (roleEl) roleEl.textContent = u.role || 'USER';
+    if (avatarEl) avatarEl.textContent = (u.name || u.email || 'A').charAt(0).toUpperCase();
+  } else {
+    if (nameEl) nameEl.textContent = 'Chưa đăng nhập';
+    if (roleEl) roleEl.textContent = 'GUEST';
+    if (avatarEl) avatarEl.textContent = '?';
+  }
+}
+
+function applyUserPermissions(user) {
+  if (!user || !user.role) return;
+
+  const role = user.role;
+  const allowedViews = AppState.rolePermissions[role] || 
+    (role === 'ADMIN' ? ['dashboard', 'gatein', 'yard', 'gateout', 'import', 'reports', 'settings'] : ['dashboard']);
+
+  // Map các view với ID nav-link tương ứng
+  const navMap = {
+    'dashboard': 'nav-dashboard',
+    'gatein': 'nav-gatein',
+    'yard': 'nav-yard',
+    'gateout': 'nav-gateout',
+    'import': 'nav-import',
+    'reports': 'nav-reports',
+    'settings': 'nav-settings'
+  };
+
+  // Ẩn/hiện các tab menu trên sidebar
+  Object.keys(navMap).forEach(view => {
+    const navEl = document.getElementById(navMap[view]);
+    if (navEl) {
+      const parentLi = navEl.closest('.nav-item');
+      if (allowedViews.includes(view) || role === 'ADMIN') {
+        if (parentLi) parentLi.classList.remove('d-none');
+        navEl.classList.remove('d-none');
+      } else {
+        if (parentLi) parentLi.classList.add('d-none');
+        navEl.classList.add('d-none');
+      }
+    }
+  });
+
+  // Tự động chuyển view sang màn hình được cấp quyền đầu tiên nếu view hiện tại không thuộc quyền
+  if (!allowedViews.includes(AppState.activeView) && role !== 'ADMIN') {
+    navigateTo(allowedViews[0]);
+  } else {
+    navigateTo(AppState.activeView || allowedViews[0]);
+  }
 }
 
 function navigateTo(viewName) {
+  const user = AppState.currentUser;
+  if (!user || !user.isLoggedIn) {
+    showLoginModal();
+    return;
+  }
+
+  const role = user.role;
+  const allowedViews = AppState.rolePermissions[role] || 
+    (role === 'ADMIN' ? ['dashboard', 'gatein', 'yard', 'gateout', 'import', 'reports', 'settings'] : []);
+
+  if (role !== 'ADMIN' && !allowedViews.includes(viewName)) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Không có quyền truy cập',
+      text: `Vai trò [${role}] không có quyền thực hiện chức năng này.`
+    });
+    return;
+  }
+
   AppState.activeView = viewName;
   document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
@@ -111,7 +233,138 @@ function navigateTo(viewName) {
   if (viewName === 'gateout') loadReadyToExitVehicles();
   if (viewName === 'import') loadImportBatches();
   if (viewName === 'reports') loadCompletedReport();
-  if (viewName === 'settings') switchSettingsTab('prices');
+  if (viewName === 'settings') switchSettingsTab('brand');
+}
+
+// --------------------------------------------------------------------------
+// AUTHENTICATION: LOGIN, LOGOUT & SWITCH ROLE
+// --------------------------------------------------------------------------
+
+function showLoginModal() {
+  const modalEl = document.getElementById('loginModal');
+  if (modalEl) {
+    let modal = bootstrap.Modal.getInstance(modalEl);
+    if (!modal) {
+      modal = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: false });
+    }
+    modal.show();
+  }
+}
+
+function hideLoginModal() {
+  const modalEl = document.getElementById('loginModal');
+  if (modalEl) {
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+  }
+}
+
+function submitLoginForm() {
+  const uInput = document.getElementById('login-input-username');
+  const pInput = document.getElementById('login-input-password');
+  const errAlert = document.getElementById('login-error-alert');
+  const errMsg = document.getElementById('login-error-msg');
+  const submitBtn = document.getElementById('btn-login-submit');
+
+  const username = uInput ? uInput.value.trim() : '';
+  const password = pInput ? pInput.value.trim() : '';
+
+  if (!username) {
+    if (errAlert) {
+      errAlert.classList.remove('d-none');
+      errMsg.textContent = 'Vui lòng nhập tài khoản hoặc email.';
+    }
+    return;
+  }
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xác thực...';
+  }
+  if (errAlert) errAlert.classList.add('d-none');
+
+  Api.call('apiLogin', [username, password])
+    .then(res => {
+      if (res && res.data) {
+        handleLoginSuccess(res.data);
+      }
+    })
+    .catch(err => {
+      if (errAlert) {
+        errAlert.classList.remove('d-none');
+        errMsg.textContent = err.message || 'Tài khoản hoặc mật khẩu không chính xác.';
+      }
+    })
+    .finally(() => {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-1"></i> Đăng Nhập';
+      }
+    });
+}
+
+function handleLoginSuccess(user) {
+  AppState.currentUser = user;
+  localStorage.setItem('dtk_session', JSON.stringify(user));
+  hideLoginModal();
+  updateUserUI();
+  applyUserPermissions(user);
+
+  Swal.fire({
+    icon: 'success',
+    title: 'Đăng nhập thành công!',
+    text: `Xin chào ${user.name || user.email} (${user.role})`,
+    timer: 1500,
+    showConfirmButton: false
+  });
+}
+
+function quickLoginAs(role) {
+  const creds = {
+    'ADMIN': { u: 'admin@dtk.local', p: 'admin' },
+    'GATE_IN': { u: 'gatein@dtk.local', p: '123' },
+    'YARD': { u: 'yard@dtk.local', p: '123' },
+    'GATE_OUT': { u: 'gateout@dtk.local', p: '123' }
+  };
+  const c = creds[role] || { u: 'admin@dtk.local', p: 'admin' };
+  const uInput = document.getElementById('login-input-username');
+  const pInput = document.getElementById('login-input-password');
+  if (uInput) uInput.value = c.u;
+  if (pInput) pInput.value = c.p;
+  submitLoginForm();
+}
+
+function doLogout() {
+  Swal.fire({
+    title: 'Đăng xuất khỏi hệ thống?',
+    text: 'Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng các chức năng.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#2563eb',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Đăng Xuất',
+    cancelButtonText: 'Hủy'
+  }).then(res => {
+    if (res.isConfirmed) {
+      localStorage.removeItem('dtk_session');
+      AppState.currentUser = null;
+      updateUserUI();
+      showLoginModal();
+    }
+  });
+}
+
+function togglePasswordVisibility(inputId) {
+  const el = document.getElementById(inputId);
+  const icon = document.getElementById('login-eye-icon');
+  if (!el) return;
+  if (el.type === 'password') {
+    el.type = 'text';
+    if (icon) { icon.classList.remove('bi-eye'); icon.classList.add('bi-eye-slash'); }
+  } else {
+    el.type = 'password';
+    if (icon) { icon.classList.remove('bi-eye-slash'); icon.classList.add('bi-eye'); }
+  }
 }
 
 function toggleSidebar(forceState) {
@@ -882,9 +1135,186 @@ function switchSettingsTab(tabName) {
   const targetView = document.getElementById('settings-view-' + tabName);
   if (targetView) targetView.classList.remove('d-none');
 
+  if (tabName === 'brand') loadBrandSettings();
   if (tabName === 'prices') loadPriceConfigs();
   if (tabName === 'users') loadUsers();
   if (tabName === 'audit') loadAuditLogs();
+}
+
+// --------------------------------------------------------------------------
+// CẤU HÌNH NHẬN DIỆN THƯƠNG HIỆU & LOGO
+// --------------------------------------------------------------------------
+
+function applyBrandSettingsToUI() {
+  const b = AppState.brandSettings;
+  if (!b) return;
+
+  const logoSrc = b.APP_LOGO || 'Logo/logo.png';
+  document.querySelectorAll('.sidebar-logo, #preview-logo-img, #login-brand-logo, #preview-ticket-logo').forEach(img => {
+    if (img) img.src = logoSrc;
+  });
+
+  const companyName = b.COMPANY_NAME || 'DTK LOGISTICS';
+  const sidebarBrand = document.querySelector('.sidebar-brand');
+  if (sidebarBrand) {
+    const sub = sidebarBrand.querySelector('small');
+    sidebarBrand.childNodes[0].nodeValue = companyName + ' ';
+    if (sub && b.APP_SUBTITLE) sub.textContent = b.APP_SUBTITLE;
+  }
+  
+  const loginBrand = document.getElementById('login-brand-title');
+  if (loginBrand) loginBrand.textContent = companyName;
+
+  const tCompany = document.getElementById('t-company-name');
+  if (tCompany) tCompany.textContent = companyName;
+
+  const prevComp = document.getElementById('preview-company-name');
+  if (prevComp) prevComp.textContent = companyName;
+
+  const prevTicketComp = document.getElementById('preview-ticket-company');
+  if (prevTicketComp) prevTicketComp.textContent = companyName;
+
+  const appSub = b.APP_SUBTITLE || 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU';
+  const loginSub = document.getElementById('login-brand-subtitle');
+  if (loginSub) loginSub.textContent = appSub;
+
+  const prevSub = document.getElementById('preview-app-subtitle');
+  if (prevSub) prevSub.textContent = appSub;
+
+  const prevTicketSub = document.getElementById('preview-ticket-subtitle');
+  if (prevTicketSub) prevTicketSub.textContent = appSub;
+
+  const ticketNote = b.TICKET_FOOTER_NOTE || 'Quý khách vui lòng giữ phiếu để đối soát khi ra cổng.';
+  const tNote = document.getElementById('t-note');
+  if (tNote) tNote.textContent = ticketNote;
+
+  const prevTicketNote = document.getElementById('preview-ticket-note');
+  if (prevTicketNote) prevTicketNote.textContent = ticketNote;
+
+  document.title = `${appSub} - ${companyName}`;
+}
+
+function loadBrandSettings() {
+  const b = AppState.brandSettings;
+  const nameEl = document.getElementById('setting-company-name');
+  const subEl = document.getElementById('setting-app-subtitle');
+  const logoEl = document.getElementById('setting-logo-url');
+  const noteEl = document.getElementById('setting-ticket-note');
+
+  if (nameEl) nameEl.value = b.COMPANY_NAME || 'DTK LOGISTICS';
+  if (subEl) subEl.value = b.APP_SUBTITLE || 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU';
+  if (logoEl) logoEl.value = b.APP_LOGO || 'Logo/logo.png';
+  if (noteEl) noteEl.value = b.TICKET_FOOTER_NOTE || 'Quý khách vui lòng giữ phiếu để đối soát khi ra cổng. Mọi thắc mắc liên hệ Hotline trực ban.';
+
+  previewBrandChanges();
+}
+
+function previewBrandChanges() {
+  const compName = document.getElementById('setting-company-name')?.value || 'DTK LOGISTICS';
+  const appSub = document.getElementById('setting-app-subtitle')?.value || 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU';
+  const logoUrl = document.getElementById('setting-logo-url')?.value || 'Logo/logo.png';
+  const ticketNote = document.getElementById('setting-ticket-note')?.value || 'Quý khách vui lòng giữ phiếu để đối soát khi ra cổng.';
+
+  const prevComp = document.getElementById('preview-company-name');
+  if (prevComp) prevComp.textContent = compName;
+
+  const prevSub = document.getElementById('preview-app-subtitle');
+  if (prevSub) prevSub.textContent = appSub;
+
+  const prevLogo = document.getElementById('preview-logo-img');
+  if (prevLogo) prevLogo.src = logoUrl;
+
+  const prevTicketComp = document.getElementById('preview-ticket-company');
+  if (prevTicketComp) prevTicketComp.textContent = compName;
+
+  const prevTicketSub = document.getElementById('preview-ticket-subtitle');
+  if (prevTicketSub) prevTicketSub.textContent = appSub;
+
+  const prevTicketLogo = document.getElementById('preview-ticket-logo');
+  if (prevTicketLogo) prevTicketLogo.src = logoUrl;
+
+  const prevNote = document.getElementById('preview-ticket-note');
+  if (prevNote) prevNote.textContent = ticketNote;
+}
+
+function handleLogoFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Vui lòng chọn file hình ảnh (PNG, JPG, SVG).' });
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64Url = e.target.result;
+    const logoInput = document.getElementById('setting-logo-url');
+    if (logoInput) logoInput.value = base64Url;
+    previewBrandChanges();
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetDefaultBrand() {
+  const defaults = {
+    APP_LOGO: 'Logo/logo.png',
+    COMPANY_NAME: 'DTK LOGISTICS',
+    APP_SUBTITLE: 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU',
+    TICKET_FOOTER_NOTE: 'Quý khách vui lòng giữ phiếu để đối soát khi ra cổng. Mọi thắc mắc liên hệ Hotline trực ban.'
+  };
+  const nameEl = document.getElementById('setting-company-name');
+  const subEl = document.getElementById('setting-app-subtitle');
+  const logoEl = document.getElementById('setting-logo-url');
+  const noteEl = document.getElementById('setting-ticket-note');
+
+  if (nameEl) nameEl.value = defaults.COMPANY_NAME;
+  if (subEl) subEl.value = defaults.APP_SUBTITLE;
+  if (logoEl) logoEl.value = defaults.APP_LOGO;
+  if (noteEl) noteEl.value = defaults.TICKET_FOOTER_NOTE;
+  previewBrandChanges();
+}
+
+function saveBrandSettings() {
+  const compName = document.getElementById('setting-company-name').value.trim();
+  const appSub = document.getElementById('setting-app-subtitle').value.trim();
+  const logoUrl = document.getElementById('setting-logo-url').value.trim();
+  const ticketNote = document.getElementById('setting-ticket-note').value.trim();
+
+  if (!compName || !appSub) {
+    Swal.fire({ icon: 'warning', title: 'Thiếu thông tin', text: 'Vui lòng điền Tên Doanh Nghiệp và Tiêu Đề Hệ Thống.' });
+    return;
+  }
+
+  const brandData = {
+    COMPANY_NAME: compName,
+    APP_SUBTITLE: appSub,
+    APP_LOGO: logoUrl || 'Logo/logo.png',
+    TICKET_FOOTER_NOTE: ticketNote
+  };
+
+  const btn = document.getElementById('btn-save-brand');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang lưu cấu hình...';
+  }
+
+  Api.call('apiSaveBrandSettings', [brandData])
+    .then(res => {
+      AppState.brandSettings = brandData;
+      localStorage.setItem('dtk_brand_settings', JSON.stringify(brandData));
+      applyBrandSettingsToUI();
+      Swal.fire({ icon: 'success', title: 'Thành công', text: res.message || 'Cập nhật cấu hình thương hiệu thành công!' });
+    })
+    .catch(err => {
+      Swal.fire({ icon: 'error', title: 'Lỗi lưu cấu hình', text: err.message });
+    })
+    .finally(() => {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Lưu Cấu Hình Thương Hiệu';
+      }
+    });
 }
 
 function loadPriceConfigs() {
@@ -964,7 +1394,10 @@ function loadUsers() {
           <td class="fw-semibold">${u.UserID}</td>
           <td>${u.Email}</td>
           <td>${u.FullName}</td>
-          <td><span class="role-tag">${u.Role}</span></td>
+          <td>
+            <span class="role-tag">${u.Role}</span>
+            <small class="d-block text-muted" style="font-size:0.7rem;">${getRoleDesc(u.Role)}</small>
+          </td>
           <td><span class="badge bg-${u.Status === 'ACTIVE' ? 'success' : 'danger'}">${u.Status}</span></td>
           <td>${u.CreatedAt || '—'}</td>
           <td class="text-center">
@@ -978,10 +1411,23 @@ function loadUsers() {
     });
 }
 
+function getRoleDesc(role) {
+  switch (role) {
+    case 'ADMIN': return 'Full quyền hệ thống';
+    case 'GATE_IN': return 'Cổng vào & Import file';
+    case 'YARD': return 'Get in / Quản lý bãi';
+    case 'GATE_OUT': return 'Cổng ra & Thu phí';
+    case 'BAI': return 'Quản lý xe bãi';
+    default: return '';
+  }
+}
+
 function openAddUserModal() {
   document.getElementById('userModalTitle').textContent = 'Thêm Người Dùng Mới';
   document.getElementById('u-id').value = '';
   document.getElementById('u-email').value = '';
+  const pwdInput = document.getElementById('u-password');
+  if (pwdInput) pwdInput.value = '';
   document.getElementById('u-name').value = '';
   document.getElementById('u-role').value = 'GATE_IN';
   document.getElementById('u-status').value = 'ACTIVE';
@@ -992,6 +1438,8 @@ function openEditUserModal(u) {
   document.getElementById('userModalTitle').textContent = 'Sửa Thông Tin Tài Khoản';
   document.getElementById('u-id').value = u.UserID || '';
   document.getElementById('u-email').value = u.Email || '';
+  const pwdInput = document.getElementById('u-password');
+  if (pwdInput) pwdInput.value = '';
   document.getElementById('u-name').value = u.FullName || '';
   document.getElementById('u-role').value = u.Role || 'GATE_IN';
   document.getElementById('u-status').value = u.Status || 'ACTIVE';
@@ -1006,6 +1454,11 @@ function saveUserFromModal() {
     Role: document.getElementById('u-role').value,
     Status: document.getElementById('u-status').value
   };
+
+  const pwdInput = document.getElementById('u-password');
+  if (pwdInput && pwdInput.value.trim()) {
+    data.Password = pwdInput.value.trim();
+  }
 
   Api.call('apiSaveUser', [data])
     .then(res => {
@@ -1192,11 +1645,17 @@ const MockBackend = (function() {
           { PriceID: 'PRC-003', VehicleType: 'TRUCK', MinWeightKg: 7000.01, MaxWeightKg: '', PricePerDay: 100000, EffectiveDate: '01/01/2026 00:00:00', Status: 'ACTIVE' }
         ],
         USERS: [
-          { UserID: 'USR-ADMIN-001', Email: 'admin@dtk.local', FullName: 'Quản Trị Viên Hệ Thống', Role: 'ADMIN', Status: 'ACTIVE', CreatedAt: '01/01/2026 00:00:00' },
-          { UserID: 'USR-GATEIN-001', Email: 'gatein@dtk.local', FullName: 'Nhân Viên Cổng Vào', Role: 'GATE_IN', Status: 'ACTIVE', CreatedAt: '01/01/2026 00:00:00' },
-          { UserID: 'USR-YARD-001', Email: 'yard@dtk.local', FullName: 'Nhân Viên Bãi', Role: 'YARD', Status: 'ACTIVE', CreatedAt: '01/01/2026 00:00:00' },
-          { UserID: 'USR-GATEOUT-001', Email: 'gateout@dtk.local', FullName: 'Nhân Viên Cổng Ra', Role: 'GATE_OUT', Status: 'ACTIVE', CreatedAt: '01/01/2026 00:00:00' }
+          { UserID: 'USR-ADMIN-001', Email: 'admin@dtk.local', FullName: 'Quản Trị Viên Hệ Thống', Role: 'ADMIN', Status: 'ACTIVE', Password: 'admin', CreatedAt: '01/01/2026 00:00:00' },
+          { UserID: 'USR-GATEIN-001', Email: 'gatein@dtk.local', FullName: 'Nhân Viên Cổng Vào', Role: 'GATE_IN', Status: 'ACTIVE', Password: '123', CreatedAt: '01/01/2026 00:00:00' },
+          { UserID: 'USR-YARD-001', Email: 'yard@dtk.local', FullName: 'Nhân Viên Bãi', Role: 'YARD', Status: 'ACTIVE', Password: '123', CreatedAt: '01/01/2026 00:00:00' },
+          { UserID: 'USR-GATEOUT-001', Email: 'gateout@dtk.local', FullName: 'Nhân Viên Cổng Ra', Role: 'GATE_OUT', Status: 'ACTIVE', Password: '123', CreatedAt: '01/01/2026 00:00:00' }
         ],
+        SETTINGS: {
+          COMPANY_NAME: 'DTK LOGISTICS',
+          APP_SUBTITLE: 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU',
+          APP_LOGO: 'Logo/logo.png',
+          TICKET_FOOTER_NOTE: 'Quý khách vui lòng giữ phiếu để đối soát khi ra cổng. Mọi thắc mắc liên hệ Hotline trực ban.'
+        },
         AUDIT: [
           { Timestamp: '08/10/2026 08:30:00', UserEmail: 'yard@dtk.local', Action: 'READY_TO_EXIT', Entity: 'VEHICLE', EntityID: 'VH-20261008-1002', OldStatus: 'IN_YARD', NewStatus: 'READY_TO_EXIT', Description: 'Duyệt xe 29C67890 sẵn sàng xuất bãi.' }
         ]
@@ -1211,7 +1670,56 @@ const MockBackend = (function() {
   }
 
   return {
-    apiGetInitialData: () => ({ success: true, data: { user: getDB().USERS[0] } }),
+    apiGetInitialData: () => {
+      const db = getDB();
+      return {
+        success: true,
+        data: {
+          settings: db.SETTINGS || AppState.brandSettings,
+          rolePermissions: AppState.rolePermissions,
+          user: db.USERS[0]
+        }
+      };
+    },
+    apiLogin: (identifier, password) => {
+      const db = getDB();
+      const s = String(identifier || '').trim().toLowerCase();
+      const u = db.USERS.find(item => 
+        String(item.Email || '').toLowerCase() === s || 
+        String(item.UserID || '').toLowerCase() === s
+      );
+
+      if (!u) {
+        return { success: false, message: 'Tài khoản không tồn tại trên hệ thống.' };
+      }
+      if (u.Status === 'INACTIVE') {
+        return { success: false, message: 'Tài khoản đã bị khóa.' };
+      }
+
+      const expectedPwd = u.Password || (u.Role === 'ADMIN' ? 'admin' : '123');
+      if (password !== undefined && String(password) !== expectedPwd) {
+        return { success: false, message: 'Mật khẩu không chính xác.' };
+      }
+
+      return {
+        success: true,
+        data: {
+          id: u.UserID,
+          email: u.Email,
+          name: u.FullName,
+          role: u.Role,
+          status: u.Status,
+          isLoggedIn: true
+        }
+      };
+    },
+    apiGetBrandSettings: () => ({ success: true, data: getDB().SETTINGS || AppState.brandSettings }),
+    apiSaveBrandSettings: (brandData) => {
+      const db = getDB();
+      db.SETTINGS = Object.assign(db.SETTINGS || {}, brandData);
+      saveDB(db);
+      return { success: true, message: 'Lưu cấu hình thương hiệu thành công!' };
+    },
     apiInitializeDatabase: () => {
       localStorage.removeItem(STORAGE_KEY);
       getDB();
@@ -1502,10 +2010,14 @@ const MockBackend = (function() {
       const db = getDB();
       if (data.UserID) {
         const u = db.USERS.find(i => i.UserID === data.UserID);
-        if (u) Object.assign(u, data);
+        if (u) {
+          Object.assign(u, data);
+          if (data.Password) u.Password = data.Password;
+        }
       } else {
         data.UserID = 'USR-' + Date.now();
         data.CreatedAt = '08/10/2026';
+        if (!data.Password) data.Password = '123';
         db.USERS.push(data);
       }
       saveDB(db);

@@ -256,14 +256,16 @@ var DatabaseService = (function() {
         const defaultSettings = [
           { SettingKey: 'TIMEZONE', SettingValue: 'Asia/Ho_Chi_Minh', Description: 'Múi giờ hệ thống', UpdatedAt: nowStr, UpdatedBy: 'SYSTEM' },
           { SettingKey: 'TICKET_PREFIX', SettingValue: 'BAI', Description: 'Tiền tố mã vé Gate In', UpdatedAt: nowStr, UpdatedBy: 'SYSTEM' },
-          { SettingKey: 'COMPANY_NAME', SettingValue: 'BÃI XE CẢNG HÀNG HÓA XUẤT NHẬP KHẨU', Description: 'Tên đơn vị quản lý bãi', UpdatedAt: nowStr, UpdatedBy: 'SYSTEM' },
+          { SettingKey: 'COMPANY_NAME', SettingValue: 'DTK LOGISTICS', Description: 'Tên thương hiệu đơn vị', UpdatedAt: nowStr, UpdatedBy: 'SYSTEM' },
+          { SettingKey: 'APP_SUBTITLE', SettingValue: 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU', Description: 'Tiêu đề phụ hệ thống', UpdatedAt: nowStr, UpdatedBy: 'SYSTEM' },
+          { SettingKey: 'APP_LOGO', SettingValue: 'Logo/logo.png', Description: 'Đường dẫn hoặc Data URL ảnh logo', UpdatedAt: nowStr, UpdatedBy: 'SYSTEM' },
           { SettingKey: 'TRUCK_WEIGHT_THRESHOLD_KG', SettingValue: '7000', Description: 'Ngưỡng khối lượng xe tải phân bậc phí (kg)', UpdatedAt: nowStr, UpdatedBy: 'SYSTEM' },
           { SettingKey: 'TICKET_FOOTER_NOTE', SettingValue: 'Vui lòng giữ phiếu để làm thủ tục ra bãi.', Description: 'Ghi chú chân phiếu', UpdatedAt: nowStr, UpdatedBy: 'SYSTEM' }
         ];
         insertRows(SHEETS.SETTINGS, defaultSettings);
       }
 
-      // 3. Khởi tạo tài khoản ADMIN mặc định (USERS)
+      // 3. Khởi tạo tài khoản người dùng mặc định (USERS)
       const usersSheet = ss.getSheetByName(SHEETS.USERS);
       if (usersSheet && usersSheet.getLastRow() <= 1) {
         let adminEmail = 'admin@dtk.local';
@@ -281,7 +283,8 @@ var DatabaseService = (function() {
             Role: ROLES.ADMIN,
             Status: 'ACTIVE',
             CreatedAt: nowStr,
-            UpdatedAt: nowStr
+            UpdatedAt: nowStr,
+            Password: 'admin' // Mật khẩu mặc định: admin
           },
           {
             UserID: 'USR-GATEIN-001',
@@ -290,7 +293,8 @@ var DatabaseService = (function() {
             Role: ROLES.GATE_IN,
             Status: 'ACTIVE',
             CreatedAt: nowStr,
-            UpdatedAt: nowStr
+            UpdatedAt: nowStr,
+            Password: '123' // Mật khẩu mặc định: 123
           },
           {
             UserID: 'USR-YARD-001',
@@ -299,7 +303,8 @@ var DatabaseService = (function() {
             Role: ROLES.YARD,
             Status: 'ACTIVE',
             CreatedAt: nowStr,
-            UpdatedAt: nowStr
+            UpdatedAt: nowStr,
+            Password: '123'
           },
           {
             UserID: 'USR-GATEOUT-001',
@@ -308,7 +313,18 @@ var DatabaseService = (function() {
             Role: ROLES.GATE_OUT,
             Status: 'ACTIVE',
             CreatedAt: nowStr,
-            UpdatedAt: nowStr
+            UpdatedAt: nowStr,
+            Password: '123'
+          },
+          {
+            UserID: 'USR-BAI-001',
+            Email: 'bai@dtk.local',
+            FullName: 'Nhân Viên Khai Báo Bãi',
+            Role: ROLES.BAI,
+            Status: 'ACTIVE',
+            CreatedAt: nowStr,
+            UpdatedAt: nowStr,
+            Password: '123'
           }
         ];
         insertRows(SHEETS.USERS, defaultUsers);

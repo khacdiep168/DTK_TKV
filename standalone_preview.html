@@ -862,7 +862,7 @@ body {
           <span class="page-title d-none d-sm-inline">Hệ Thống Quản Lý Bãi Xe</span>
         </div>
 
-        <div class="header-right">
+        <div class="header-right d-flex align-items-center gap-2">
           <div class="user-profile-badge">
             <div class="user-avatar" id="user-avatar-initial">A</div>
             <div class="d-none d-md-block text-start">
@@ -870,6 +870,9 @@ body {
               <small class="text-muted" id="user-role-tag">ADMIN</small>
             </div>
           </div>
+          <button class="btn btn-outline-danger btn-sm px-2 py-1 ms-1 fw-semibold" title="Đăng Xuất Khỏi Hệ Thống" onclick="doLogout()">
+            <i class="bi bi-box-arrow-right"></i> <span class="d-none d-sm-inline">Đăng Xuất</span>
+          </button>
         </div>
       </header>
 
@@ -1578,13 +1581,18 @@ body {
     <div class="col-12">
       <ul class="nav nav-pills border-bottom pb-2 gap-2" id="settings-tabs" role="tablist">
         <li class="nav-item">
-          <button class="nav-link active px-3 py-2 fw-semibold" id="tab-prices" onclick="switchSettingsTab('prices')">
+          <button class="nav-link active px-3 py-2 fw-semibold" id="tab-brand" onclick="switchSettingsTab('brand')">
+            <i class="bi bi-palette me-1"></i> Thương Hiệu & Logo
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link px-3 py-2 fw-semibold" id="tab-prices" onclick="switchSettingsTab('prices')">
             <i class="bi bi-tag me-1"></i> Bảng Giá Cấu Hình (PRICE_CONFIG)
           </button>
         </li>
         <li class="nav-item">
           <button class="nav-link px-3 py-2 fw-semibold" id="tab-users" onclick="switchSettingsTab('users')">
-            <i class="bi bi-people me-1"></i> Quản Lý Người Dùng (USERS)
+            <i class="bi bi-people me-1"></i> Quản Lý Tài Khoản (USERS)
           </button>
         </li>
         <li class="nav-item">
@@ -1600,13 +1608,118 @@ body {
       </ul>
     </div>
 
+    <!-- 0. THƯƠNG HIỆU & LOGO -->
+    <div class="col-12 settings-subview" id="settings-view-brand">
+      <div class="card border-0 shadow-sm rounded-3 p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h6 class="fw-bold mb-1 text-primary"><i class="bi bi-brush me-2"></i>Cấu Hình Nhận Diện Thương Hiệu & Hệ Thống</h6>
+            <small class="text-muted">Tùy biến Logo, Tên đơn vị vận hành, Tiêu đề hệ thống và thông tin in trên phiếu vé bãi xe</small>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <!-- Cột bên trái: Biểu mẫu nhập liệu -->
+          <div class="col-lg-7">
+            <form id="brand-settings-form" onsubmit="event.preventDefault(); saveBrandSettings();">
+              <!-- Tên đơn vị / Doanh nghiệp -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Tên Đơn Vị Doanh Nghiệp (Brand Name) <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="setting-company-name" placeholder="Ví dụ: DTK LOGISTICS" required oninput="previewBrandChanges()">
+                <div class="form-text">Hiển thị nổi bật ở thanh bên trái (Sidebar) và đầu phiếu vé vào bãi.</div>
+              </div>
+
+              <!-- Tiêu đề hệ thống -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Tiêu Đề Phụ Hệ Thống (System Subtitle) <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="setting-app-subtitle" placeholder="Ví dụ: QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU" required oninput="previewBrandChanges()">
+                <div class="form-text">Tiêu đề nghiệp vụ hiển thị bên dưới tên doanh nghiệp và trên thanh tiêu đề ứng dụng.</div>
+              </div>
+
+              <!-- Cấu hình Logo -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Logo Hệ Thống</label>
+                <div class="input-group mb-2">
+                  <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                  <input type="text" class="form-control" id="setting-logo-url" placeholder="Nhập đường dẫn URL ảnh Logo hoặc tải file bên dưới" oninput="previewBrandChanges()">
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <input type="file" id="setting-logo-file" class="d-none" accept="image/*" onchange="handleLogoFileUpload(event)">
+                  <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('setting-logo-file').click()">
+                    <i class="bi bi-upload me-1"></i> Chọn file ảnh từ máy tính (PNG/JPG)
+                  </button>
+                  <button type="button" class="btn btn-outline-danger btn-sm" onclick="resetDefaultBrand()">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Khôi phục mặc định
+                  </button>
+                </div>
+                <div class="form-text">Hỗ trợ ảnh PNG, JPG hoặc SVG. Khuyến nghị ảnh vuông hoặc tỷ lệ ngang gọn.</div>
+              </div>
+
+              <!-- Ghi chú chân phiếu vé -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold">Ghi Chú In Chân Phiếu Vé (Ticket Footer Note)</label>
+                <textarea class="form-control" id="setting-ticket-note" rows="2" placeholder="Ví dụ: Quý khách vui lòng giữ phiếu để đối soát khi ra cổng. Hotline hỗ trợ: 1900 xxxx" oninput="previewBrandChanges()"></textarea>
+                <div class="form-text">Đoạn lưu ý này sẽ tự động in ở đáy các phiếu vào bãi (Khổ 80mm).</div>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4 fw-semibold" id="btn-save-brand">
+                  <i class="bi bi-check2-circle me-1"></i> Lưu Cấu Hình Thương Hiệu
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Cột bên phải: Xem trước Trực Quan (Live Preview) -->
+          <div class="col-lg-5">
+            <div class="border rounded-3 p-3 bg-light h-100">
+              <h6 class="fw-bold mb-3 text-secondary text-uppercase small"><i class="bi bi-eye me-1"></i>Xem Trước Giao Diện (Live Preview)</h6>
+              
+              <!-- Xem trước Sidebar Header -->
+              <div class="card border-0 shadow-sm p-3 mb-3" style="background: #0f172a; color: #ffffff;">
+                <small class="text-muted mb-2 d-block">Thanh bên trái (Sidebar Menu):</small>
+                <div class="d-flex align-items-center gap-3">
+                  <div style="width: 44px; height: 44px; background: #ffffff; border-radius: 8px; padding: 3px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    <img id="preview-logo-img" src="Logo/logo.png" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="Logo Preview" onerror="this.src='https://api.iconify.design/bi:truck-front-fill.svg?color=%232563eb'">
+                  </div>
+                  <div>
+                    <div id="preview-company-name" class="fw-bold text-white fs-6 lh-1">DTK LOGISTICS</div>
+                    <small id="preview-app-subtitle" class="text-secondary text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Xem trước Header In Vé -->
+              <div class="card border p-3 bg-white shadow-sm">
+                <small class="text-muted mb-2 d-block">Đầu Phiếu In Khổ 80mm:</small>
+                <div class="text-center pb-2 border-bottom border-dashed">
+                  <img id="preview-ticket-logo" src="Logo/logo.png" style="max-height: 38px; object-fit: contain; margin-bottom: 4px;" alt="Ticket Logo" onerror="this.src='https://api.iconify.design/bi:truck-front-fill.svg?color=%232563eb'">
+                  <div id="preview-ticket-company" class="fw-bold text-dark small text-uppercase">DTK LOGISTICS</div>
+                  <div id="preview-ticket-subtitle" class="text-muted" style="font-size: 0.68rem;">QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU</div>
+                </div>
+                <div class="text-center py-2">
+                  <span class="badge bg-primary text-white">PHIẾU VÀO BÃI XE</span>
+                  <div class="small fw-semibold mt-1">29C-123.45</div>
+                </div>
+                <div class="pt-2 border-top border-dashed text-center">
+                  <small id="preview-ticket-note" class="text-muted fst-italic" style="font-size: 0.65rem;">
+                    Quý khách vui lòng giữ phiếu để đối soát khi ra cổng.
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 1. BẢNG GIÁ PRICE_CONFIG -->
-    <div class="col-12 settings-subview" id="settings-view-prices">
+    <div class="col-12 settings-subview d-none" id="settings-view-prices">
       <div class="card border-0 shadow-sm rounded-3 p-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
-            <h6 class="fw-bold mb-1">Cấu Hình Bảng Giá Lưu Bãi (PRICE_CONFIG)</h6>
-            <small class="text-muted">Đơn giá động theo ngày, tải trọng xe và loại phương tiện theo CLAUDE.md Section 22</small>
+            <h6 class="fw-bold mb-1 text-primary"><i class="bi bi-tag me-2"></i>Cấu Hình Bảng Giá Lưu Bãi (PRICE_CONFIG)</h6>
+            <small class="text-muted">Đơn giá động theo ngày, tải trọng xe và loại phương tiện theo quy định vận hành</small>
           </div>
           <button class="btn btn-primary btn-sm" onclick="openAddPriceModal()">
             <i class="bi bi-plus-circle me-1"></i> Thêm Mức Giá Mới
@@ -1886,8 +1999,8 @@ body {
 <div class="modal fade" id="priceModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow">
-      <div class="modal-header py-2">
-        <h6 class="modal-title fw-bold" id="priceModalTitle">Thêm / Sửa Bảng Giá</h6>
+      <div class="modal-header py-2 bg-light">
+        <h6 class="modal-title fw-bold" id="priceModalTitle"><i class="bi bi-tag-fill me-2 text-primary"></i>Thêm / Sửa Bảng Giá</h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body p-3">
@@ -1895,8 +2008,14 @@ body {
         <div class="mb-2">
           <label class="form-label small fw-semibold">Loại Phương Tiện <span class="text-danger">*</span></label>
           <select id="p-vtype" class="form-select form-select-sm">
-            <option value="CONTAINER">CONTAINER</option>
-            <option value="TRUCK">TRUCK (Xe Tải)</option>
+            <option value="CONTAINER">CONTAINER (Xe kéo / Container)</option>
+            <option value="XE_TAI_NHO">XE_TAI_NHO (Xe tải dưới 3.5 tấn)</option>
+            <option value="XE_TAI_TRUNG">XE_TAI_TRUNG (Xe tải 3.5 - 8 tấn)</option>
+            <option value="XE_TAI_NANG">XE_TAI_NANG (Xe tải trên 8 tấn)</option>
+            <option value="XE_DAU_KEO">XE_DAU_KEO (Đầu kéo không mooc)</option>
+            <option value="XE_CON">XE_CON (Xe con / Xe bán tải)</option>
+            <option value="TRUCK">TRUCK (Xe tải chung)</option>
+            <option value="KHAC">KHAC (Xe đặc chủng / Khác)</option>
           </select>
         </div>
         <div class="row g-2 mb-2">
@@ -1906,24 +2025,26 @@ body {
           </div>
           <div class="col-6">
             <label class="form-label small fw-semibold">Đến tải trọng (kg)</label>
-            <input type="number" id="p-maxweight" class="form-control form-control-sm" placeholder="7000">
+            <input type="number" id="p-maxweight" class="form-control form-control-sm" placeholder="Không giới hạn">
           </div>
         </div>
         <div class="mb-2">
           <label class="form-label small fw-semibold">Đơn Giá / Ngày (VNĐ) <span class="text-danger">*</span></label>
-          <input type="number" id="p-amount" class="form-control form-control-sm" placeholder="100000">
+          <input type="number" id="p-amount" class="form-control form-control-sm" placeholder="Ví dụ: 150000">
         </div>
         <div class="mb-2">
           <label class="form-label small fw-semibold">Trạng Thái</label>
           <select id="p-status" class="form-select form-select-sm">
-            <option value="ACTIVE">ACTIVE (Hiệu lực)</option>
-            <option value="INACTIVE">INACTIVE (Hết hiệu lực)</option>
+            <option value="ACTIVE">ACTIVE (Đang áp dụng)</option>
+            <option value="INACTIVE">INACTIVE (Tạm ngưng)</option>
           </select>
         </div>
       </div>
       <div class="modal-footer py-2">
         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
-        <button type="button" class="btn btn-primary btn-sm fw-bold" onclick="savePriceFromModal()">Lưu Cấu Hình</button>
+        <button type="button" class="btn btn-primary btn-sm fw-bold" onclick="savePriceFromModal()">
+          <i class="bi bi-save me-1"></i> Lưu Cấu Hình Giá
+        </button>
       </div>
     </div>
   </div>
@@ -1933,41 +2054,115 @@ body {
 <div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow">
-      <div class="modal-header py-2">
-        <h6 class="modal-title fw-bold" id="userModalTitle">Thêm / Sửa Tài Khoản</h6>
+      <div class="modal-header py-2 bg-light">
+        <h6 class="modal-title fw-bold" id="userModalTitle"><i class="bi bi-person-fill-gear me-2 text-primary"></i>Thêm / Sửa Tài Khoản</h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body p-3">
         <input type="hidden" id="u-id">
         <div class="mb-2">
-          <label class="form-label small fw-semibold">Email Google <span class="text-danger">*</span></label>
-          <input type="email" id="u-email" class="form-control form-control-sm" placeholder="nhanvien@congty.com">
+          <label class="form-label small fw-semibold">Tài Khoản / Email Đăng Nhập <span class="text-danger">*</span></label>
+          <input type="text" id="u-email" class="form-control form-control-sm" placeholder="admin@dtk.local hoặc congvao@dtk.local">
         </div>
         <div class="mb-2">
-          <label class="form-label small fw-semibold">Họ Và Tên <span class="text-danger">*</span></label>
+          <label class="form-label small fw-semibold">Mật Khẩu</label>
+          <input type="password" id="u-password" class="form-control form-control-sm" placeholder="Nhập mật khẩu (để trống nếu giữ nguyên)">
+          <div class="form-text" style="font-size: 0.72rem;">Mật khẩu khởi tạo mặc định là 123 (hoặc admin đối với tài khoản Admin).</div>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Họ Và Tên Nhân Viên <span class="text-danger">*</span></label>
           <input type="text" id="u-name" class="form-control form-control-sm" placeholder="Nguyễn Văn A">
         </div>
         <div class="mb-2">
-          <label class="form-label small fw-semibold">Quyền Hạn (Role) <span class="text-danger">*</span></label>
+          <label class="form-label small fw-semibold">Quyền Hạn & Vai Trò (Role) <span class="text-danger">*</span></label>
           <select id="u-role" class="form-select form-select-sm">
-            <option value="ADMIN">ADMIN - Toàn quyền quản trị</option>
-            <option value="BAI">BAI - Nhân viên bãi & Import</option>
-            <option value="GATE_IN">GATE_IN - Nhân viên cổng vào</option>
-            <option value="YARD">YARD - Nhân viên bãi GetIn/GetOut</option>
-            <option value="GATE_OUT">GATE_OUT - Nhân viên cổng ra</option>
+            <option value="ADMIN">ADMIN - Full quyền toàn bộ hệ thống</option>
+            <option value="GATE_IN">GATE_IN - Cổng vào & Import file Excel</option>
+            <option value="YARD">YARD - Get In & Quản lý xe trong bãi</option>
+            <option value="GATE_OUT">GATE_OUT - Cổng ra & Tính phí xuất bãi</option>
+            <option value="BAI">BAI - Quản lý xe bãi & Import</option>
           </select>
         </div>
         <div class="mb-2">
           <label class="form-label small fw-semibold">Trạng Thái</label>
           <select id="u-status" class="form-select form-select-sm">
             <option value="ACTIVE">ACTIVE (Đang hoạt động)</option>
-            <option value="INACTIVE">INACTIVE (Đã khóa)</option>
+            <option value="INACTIVE">INACTIVE (Đã khóa truy cập)</option>
           </select>
         </div>
       </div>
       <div class="modal-footer py-2">
         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
-        <button type="button" class="btn btn-primary btn-sm fw-bold" onclick="saveUserFromModal()">Lưu Tài Khoản</button>
+        <button type="button" class="btn btn-primary btn-sm fw-bold" onclick="saveUserFromModal()">
+          <i class="bi bi-save me-1"></i> Lưu Tài Khoản
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Đăng Nhập Hệ Thống (Login Modal) -->
+<div class="modal fade" id="loginModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="p-4 text-center text-white" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-bottom: 2px solid rgba(37,99,235,0.3);">
+        <div class="d-inline-flex p-2 bg-white rounded-3 shadow-sm mb-3">
+          <img id="login-brand-logo" src="Logo/logo.png" style="width: 48px; height: 48px; object-fit: contain;" alt="Brand Logo" onerror="this.src='https://api.iconify.design/bi:truck-front-fill.svg?color=%232563eb'">
+        </div>
+        <h5 class="fw-bold mb-1 tracking-wide" id="login-brand-title">DTK LOGISTICS</h5>
+        <div class="small text-secondary text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.5px;" id="login-brand-subtitle">QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU</div>
+      </div>
+      
+      <div class="p-4 bg-white">
+        <form id="form-login" onsubmit="event.preventDefault(); submitLoginForm();">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-secondary">Tài Khoản / Email</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+              <input type="text" class="form-control border-start-0" id="login-input-username" placeholder="admin@dtk.local hoặc gatein@dtk.local" required autocomplete="username">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-secondary">Mật Khẩu</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0"><i class="bi bi-shield-lock text-muted"></i></span>
+              <input type="password" class="form-control border-start-0" id="login-input-password" placeholder="Nhập mật khẩu..." required autocomplete="current-password">
+              <button class="btn btn-outline-secondary border-start-0" type="button" onclick="togglePasswordVisibility('login-input-password')">
+                <i class="bi bi-eye" id="login-eye-icon"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="login-error-alert" class="alert alert-danger py-2 small d-none" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i> <span id="login-error-msg">Mật khẩu không chính xác</span>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm" id="btn-login-submit">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Đăng Nhập
+          </button>
+        </form>
+
+        <div class="mt-4 pt-3 border-top">
+          <div class="text-muted small fw-semibold mb-2 text-center" style="font-size: 0.75rem;">ĐĂNG NHẬP NHANH THEO VAI TRÒ</div>
+          <div class="d-grid gap-2">
+            <button class="btn btn-outline-primary btn-sm text-start d-flex justify-content-between align-items-center" onclick="quickLoginAs('ADMIN')">
+              <span><i class="bi bi-shield-check me-1 text-danger"></i> <strong>Admin</strong> (Full Quyền)</span>
+              <span class="badge bg-primary-subtle text-primary border">admin / admin</span>
+            </button>
+            <button class="btn btn-outline-primary btn-sm text-start d-flex justify-content-between align-items-center" onclick="quickLoginAs('GATE_IN')">
+              <span><i class="bi bi-box-arrow-in-right me-1 text-primary"></i> <strong>Cổng Vào</strong> (Cổng vào + Import)</span>
+              <span class="badge bg-primary-subtle text-primary border">gatein / 123</span>
+            </button>
+            <button class="btn btn-outline-primary btn-sm text-start d-flex justify-content-between align-items-center" onclick="quickLoginAs('YARD')">
+              <span><i class="bi bi-building me-1 text-warning"></i> <strong>Get In / Bãi</strong> (Quản lý bãi xe)</span>
+              <span class="badge bg-primary-subtle text-primary border">yard / 123</span>
+            </button>
+            <button class="btn btn-outline-primary btn-sm text-start d-flex justify-content-between align-items-center" onclick="quickLoginAs('GATE_OUT')">
+              <span><i class="bi bi-box-arrow-right me-1 text-success"></i> <strong>Cổng Ra</strong> (Soát vé & thu phí)</span>
+              <span class="badge bg-primary-subtle text-primary border">gateout / 123</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1993,14 +2188,28 @@ body {
  */
 
 // Global State
+// Global State
 const AppState = {
-  currentUser: { id: 'USR-ADMIN-001', name: 'Quản Trị Viên', email: 'admin@dtk.local', role: 'ADMIN' },
+  currentUser: null,
   activeView: 'dashboard',
   isGasEnvironment: (typeof google !== 'undefined' && google.script && google.script.run),
   dashboardChart: null,
   cachedInYardList: [],
   selectedImportData: null,
-  currentInspectingGateIn: null
+  currentInspectingGateIn: null,
+  brandSettings: {
+    APP_LOGO: 'Logo/logo.png',
+    COMPANY_NAME: 'DTK LOGISTICS',
+    APP_SUBTITLE: 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU',
+    TICKET_FOOTER_NOTE: 'Quý khách vui lòng giữ phiếu để đối soát khi ra cổng. Mọi thắc mắc liên hệ Hotline trực ban.'
+  },
+  rolePermissions: {
+    'ADMIN': ['dashboard', 'gatein', 'yard', 'gateout', 'import', 'reports', 'settings'],
+    'GATE_IN': ['gatein', 'import'],
+    'YARD': ['yard'],
+    'GATE_OUT': ['gateout'],
+    'BAI': ['import', 'gatein']
+  }
 };
 
 // ==========================================================================
@@ -2026,6 +2235,10 @@ const Api = {
         // Standalone Local Mock Fallback
         setTimeout(() => {
           try {
+            if (!MockBackend[fnName]) {
+              reject({ success: false, message: 'API chưa được định nghĩa: ' + fnName });
+              return;
+            }
             const mockRes = MockBackend[fnName].apply(MockBackend, args);
             if (mockRes && mockRes.success === false) {
               reject(mockRes);
@@ -2042,7 +2255,7 @@ const Api = {
 };
 
 // ==========================================================================
-// 2. INITIALIZATION & ROUTING
+// 2. INITIALIZATION, AUTHENTICATION & ROUTING
 // ==========================================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -2050,19 +2263,57 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initApp() {
+  // 1. Nạp Brand Settings từ LocalStorage nếu có
+  try {
+    const savedBrand = localStorage.getItem('dtk_brand_settings');
+    if (savedBrand) {
+      AppState.brandSettings = Object.assign(AppState.brandSettings, JSON.parse(savedBrand));
+      applyBrandSettingsToUI();
+    }
+  } catch (e) {}
+
+  // 2. Kiểm tra phiên đăng nhập đã lưu
+  let savedSession = null;
+  try {
+    savedSession = JSON.parse(localStorage.getItem('dtk_session') || 'null');
+  } catch (e) {}
+
+  // 3. Gọi khởi tạo từ Server / Backend
   Api.call('apiGetInitialData')
     .then(res => {
-      if (res && res.data && res.data.user) {
-        AppState.currentUser = res.data.user;
-        updateUserUI();
+      if (res && res.data) {
+        if (res.data.settings) {
+          AppState.brandSettings = Object.assign(AppState.brandSettings, res.data.settings);
+          applyBrandSettingsToUI();
+        }
+        if (res.data.rolePermissions) {
+          AppState.rolePermissions = res.data.rolePermissions;
+        }
+
+        // Ưu tiên session đã đăng nhập, nếu chưa có thì dùng user trả về hoặc hiện Modal Login
+        if (savedSession && savedSession.isLoggedIn) {
+          AppState.currentUser = savedSession;
+        } else if (res.data.user && res.data.user.isLoggedIn) {
+          AppState.currentUser = res.data.user;
+        }
       }
-      loadDashboardKPIs('TODAY');
-      loadRecentGateIns();
+
+      if (AppState.currentUser && AppState.currentUser.isLoggedIn) {
+        updateUserUI();
+        applyUserPermissions(AppState.currentUser);
+      } else {
+        showLoginModal();
+      }
     })
     .catch(err => {
       console.warn('Init fallback:', err);
-      updateUserUI();
-      loadDashboardKPIs('TODAY');
+      if (savedSession && savedSession.isLoggedIn) {
+        AppState.currentUser = savedSession;
+        updateUserUI();
+        applyUserPermissions(AppState.currentUser);
+      } else {
+        showLoginModal();
+      }
     });
 }
 
@@ -2071,12 +2322,78 @@ function updateUserUI() {
   const nameEl = document.getElementById('user-display-name');
   const roleEl = document.getElementById('user-role-tag');
   const avatarEl = document.getElementById('user-avatar-initial');
-  if (nameEl) nameEl.textContent = u.name || u.email;
-  if (roleEl) roleEl.textContent = u.role || 'USER';
-  if (avatarEl) avatarEl.textContent = (u.name || u.email || 'A').charAt(0).toUpperCase();
+  if (u) {
+    if (nameEl) nameEl.textContent = u.name || u.email;
+    if (roleEl) roleEl.textContent = u.role || 'USER';
+    if (avatarEl) avatarEl.textContent = (u.name || u.email || 'A').charAt(0).toUpperCase();
+  } else {
+    if (nameEl) nameEl.textContent = 'Chưa đăng nhập';
+    if (roleEl) roleEl.textContent = 'GUEST';
+    if (avatarEl) avatarEl.textContent = '?';
+  }
+}
+
+function applyUserPermissions(user) {
+  if (!user || !user.role) return;
+
+  const role = user.role;
+  const allowedViews = AppState.rolePermissions[role] || 
+    (role === 'ADMIN' ? ['dashboard', 'gatein', 'yard', 'gateout', 'import', 'reports', 'settings'] : ['dashboard']);
+
+  // Map các view với ID nav-link tương ứng
+  const navMap = {
+    'dashboard': 'nav-dashboard',
+    'gatein': 'nav-gatein',
+    'yard': 'nav-yard',
+    'gateout': 'nav-gateout',
+    'import': 'nav-import',
+    'reports': 'nav-reports',
+    'settings': 'nav-settings'
+  };
+
+  // Ẩn/hiện các tab menu trên sidebar
+  Object.keys(navMap).forEach(view => {
+    const navEl = document.getElementById(navMap[view]);
+    if (navEl) {
+      const parentLi = navEl.closest('.nav-item');
+      if (allowedViews.includes(view) || role === 'ADMIN') {
+        if (parentLi) parentLi.classList.remove('d-none');
+        navEl.classList.remove('d-none');
+      } else {
+        if (parentLi) parentLi.classList.add('d-none');
+        navEl.classList.add('d-none');
+      }
+    }
+  });
+
+  // Tự động chuyển view sang màn hình được cấp quyền đầu tiên nếu view hiện tại không thuộc quyền
+  if (!allowedViews.includes(AppState.activeView) && role !== 'ADMIN') {
+    navigateTo(allowedViews[0]);
+  } else {
+    navigateTo(AppState.activeView || allowedViews[0]);
+  }
 }
 
 function navigateTo(viewName) {
+  const user = AppState.currentUser;
+  if (!user || !user.isLoggedIn) {
+    showLoginModal();
+    return;
+  }
+
+  const role = user.role;
+  const allowedViews = AppState.rolePermissions[role] || 
+    (role === 'ADMIN' ? ['dashboard', 'gatein', 'yard', 'gateout', 'import', 'reports', 'settings'] : []);
+
+  if (role !== 'ADMIN' && !allowedViews.includes(viewName)) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Không có quyền truy cập',
+      text: `Vai trò [${role}] không có quyền thực hiện chức năng này.`
+    });
+    return;
+  }
+
   AppState.activeView = viewName;
   document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
@@ -2097,7 +2414,138 @@ function navigateTo(viewName) {
   if (viewName === 'gateout') loadReadyToExitVehicles();
   if (viewName === 'import') loadImportBatches();
   if (viewName === 'reports') loadCompletedReport();
-  if (viewName === 'settings') switchSettingsTab('prices');
+  if (viewName === 'settings') switchSettingsTab('brand');
+}
+
+// --------------------------------------------------------------------------
+// AUTHENTICATION: LOGIN, LOGOUT & SWITCH ROLE
+// --------------------------------------------------------------------------
+
+function showLoginModal() {
+  const modalEl = document.getElementById('loginModal');
+  if (modalEl) {
+    let modal = bootstrap.Modal.getInstance(modalEl);
+    if (!modal) {
+      modal = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: false });
+    }
+    modal.show();
+  }
+}
+
+function hideLoginModal() {
+  const modalEl = document.getElementById('loginModal');
+  if (modalEl) {
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    if (modal) modal.hide();
+  }
+}
+
+function submitLoginForm() {
+  const uInput = document.getElementById('login-input-username');
+  const pInput = document.getElementById('login-input-password');
+  const errAlert = document.getElementById('login-error-alert');
+  const errMsg = document.getElementById('login-error-msg');
+  const submitBtn = document.getElementById('btn-login-submit');
+
+  const username = uInput ? uInput.value.trim() : '';
+  const password = pInput ? pInput.value.trim() : '';
+
+  if (!username) {
+    if (errAlert) {
+      errAlert.classList.remove('d-none');
+      errMsg.textContent = 'Vui lòng nhập tài khoản hoặc email.';
+    }
+    return;
+  }
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xác thực...';
+  }
+  if (errAlert) errAlert.classList.add('d-none');
+
+  Api.call('apiLogin', [username, password])
+    .then(res => {
+      if (res && res.data) {
+        handleLoginSuccess(res.data);
+      }
+    })
+    .catch(err => {
+      if (errAlert) {
+        errAlert.classList.remove('d-none');
+        errMsg.textContent = err.message || 'Tài khoản hoặc mật khẩu không chính xác.';
+      }
+    })
+    .finally(() => {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-1"></i> Đăng Nhập';
+      }
+    });
+}
+
+function handleLoginSuccess(user) {
+  AppState.currentUser = user;
+  localStorage.setItem('dtk_session', JSON.stringify(user));
+  hideLoginModal();
+  updateUserUI();
+  applyUserPermissions(user);
+
+  Swal.fire({
+    icon: 'success',
+    title: 'Đăng nhập thành công!',
+    text: `Xin chào ${user.name || user.email} (${user.role})`,
+    timer: 1500,
+    showConfirmButton: false
+  });
+}
+
+function quickLoginAs(role) {
+  const creds = {
+    'ADMIN': { u: 'admin@dtk.local', p: 'admin' },
+    'GATE_IN': { u: 'gatein@dtk.local', p: '123' },
+    'YARD': { u: 'yard@dtk.local', p: '123' },
+    'GATE_OUT': { u: 'gateout@dtk.local', p: '123' }
+  };
+  const c = creds[role] || { u: 'admin@dtk.local', p: 'admin' };
+  const uInput = document.getElementById('login-input-username');
+  const pInput = document.getElementById('login-input-password');
+  if (uInput) uInput.value = c.u;
+  if (pInput) pInput.value = c.p;
+  submitLoginForm();
+}
+
+function doLogout() {
+  Swal.fire({
+    title: 'Đăng xuất khỏi hệ thống?',
+    text: 'Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng các chức năng.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#2563eb',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Đăng Xuất',
+    cancelButtonText: 'Hủy'
+  }).then(res => {
+    if (res.isConfirmed) {
+      localStorage.removeItem('dtk_session');
+      AppState.currentUser = null;
+      updateUserUI();
+      showLoginModal();
+    }
+  });
+}
+
+function togglePasswordVisibility(inputId) {
+  const el = document.getElementById(inputId);
+  const icon = document.getElementById('login-eye-icon');
+  if (!el) return;
+  if (el.type === 'password') {
+    el.type = 'text';
+    if (icon) { icon.classList.remove('bi-eye'); icon.classList.add('bi-eye-slash'); }
+  } else {
+    el.type = 'password';
+    if (icon) { icon.classList.remove('bi-eye-slash'); icon.classList.add('bi-eye'); }
+  }
 }
 
 function toggleSidebar(forceState) {
@@ -2868,9 +3316,186 @@ function switchSettingsTab(tabName) {
   const targetView = document.getElementById('settings-view-' + tabName);
   if (targetView) targetView.classList.remove('d-none');
 
+  if (tabName === 'brand') loadBrandSettings();
   if (tabName === 'prices') loadPriceConfigs();
   if (tabName === 'users') loadUsers();
   if (tabName === 'audit') loadAuditLogs();
+}
+
+// --------------------------------------------------------------------------
+// CẤU HÌNH NHẬN DIỆN THƯƠNG HIỆU & LOGO
+// --------------------------------------------------------------------------
+
+function applyBrandSettingsToUI() {
+  const b = AppState.brandSettings;
+  if (!b) return;
+
+  const logoSrc = b.APP_LOGO || 'Logo/logo.png';
+  document.querySelectorAll('.sidebar-logo, #preview-logo-img, #login-brand-logo, #preview-ticket-logo').forEach(img => {
+    if (img) img.src = logoSrc;
+  });
+
+  const companyName = b.COMPANY_NAME || 'DTK LOGISTICS';
+  const sidebarBrand = document.querySelector('.sidebar-brand');
+  if (sidebarBrand) {
+    const sub = sidebarBrand.querySelector('small');
+    sidebarBrand.childNodes[0].nodeValue = companyName + ' ';
+    if (sub && b.APP_SUBTITLE) sub.textContent = b.APP_SUBTITLE;
+  }
+  
+  const loginBrand = document.getElementById('login-brand-title');
+  if (loginBrand) loginBrand.textContent = companyName;
+
+  const tCompany = document.getElementById('t-company-name');
+  if (tCompany) tCompany.textContent = companyName;
+
+  const prevComp = document.getElementById('preview-company-name');
+  if (prevComp) prevComp.textContent = companyName;
+
+  const prevTicketComp = document.getElementById('preview-ticket-company');
+  if (prevTicketComp) prevTicketComp.textContent = companyName;
+
+  const appSub = b.APP_SUBTITLE || 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU';
+  const loginSub = document.getElementById('login-brand-subtitle');
+  if (loginSub) loginSub.textContent = appSub;
+
+  const prevSub = document.getElementById('preview-app-subtitle');
+  if (prevSub) prevSub.textContent = appSub;
+
+  const prevTicketSub = document.getElementById('preview-ticket-subtitle');
+  if (prevTicketSub) prevTicketSub.textContent = appSub;
+
+  const ticketNote = b.TICKET_FOOTER_NOTE || 'Quý khách vui lòng giữ phiếu để đối soát khi ra cổng.';
+  const tNote = document.getElementById('t-note');
+  if (tNote) tNote.textContent = ticketNote;
+
+  const prevTicketNote = document.getElementById('preview-ticket-note');
+  if (prevTicketNote) prevTicketNote.textContent = ticketNote;
+
+  document.title = `${appSub} - ${companyName}`;
+}
+
+function loadBrandSettings() {
+  const b = AppState.brandSettings;
+  const nameEl = document.getElementById('setting-company-name');
+  const subEl = document.getElementById('setting-app-subtitle');
+  const logoEl = document.getElementById('setting-logo-url');
+  const noteEl = document.getElementById('setting-ticket-note');
+
+  if (nameEl) nameEl.value = b.COMPANY_NAME || 'DTK LOGISTICS';
+  if (subEl) subEl.value = b.APP_SUBTITLE || 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU';
+  if (logoEl) logoEl.value = b.APP_LOGO || 'Logo/logo.png';
+  if (noteEl) noteEl.value = b.TICKET_FOOTER_NOTE || 'Quý khách vui lòng giữ phiếu để đối soát khi ra cổng. Mọi thắc mắc liên hệ Hotline trực ban.';
+
+  previewBrandChanges();
+}
+
+function previewBrandChanges() {
+  const compName = document.getElementById('setting-company-name')?.value || 'DTK LOGISTICS';
+  const appSub = document.getElementById('setting-app-subtitle')?.value || 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU';
+  const logoUrl = document.getElementById('setting-logo-url')?.value || 'Logo/logo.png';
+  const ticketNote = document.getElementById('setting-ticket-note')?.value || 'Quý khách vui lòng giữ phiếu để đối soát khi ra cổng.';
+
+  const prevComp = document.getElementById('preview-company-name');
+  if (prevComp) prevComp.textContent = compName;
+
+  const prevSub = document.getElementById('preview-app-subtitle');
+  if (prevSub) prevSub.textContent = appSub;
+
+  const prevLogo = document.getElementById('preview-logo-img');
+  if (prevLogo) prevLogo.src = logoUrl;
+
+  const prevTicketComp = document.getElementById('preview-ticket-company');
+  if (prevTicketComp) prevTicketComp.textContent = compName;
+
+  const prevTicketSub = document.getElementById('preview-ticket-subtitle');
+  if (prevTicketSub) prevTicketSub.textContent = appSub;
+
+  const prevTicketLogo = document.getElementById('preview-ticket-logo');
+  if (prevTicketLogo) prevTicketLogo.src = logoUrl;
+
+  const prevNote = document.getElementById('preview-ticket-note');
+  if (prevNote) prevNote.textContent = ticketNote;
+}
+
+function handleLogoFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Vui lòng chọn file hình ảnh (PNG, JPG, SVG).' });
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64Url = e.target.result;
+    const logoInput = document.getElementById('setting-logo-url');
+    if (logoInput) logoInput.value = base64Url;
+    previewBrandChanges();
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetDefaultBrand() {
+  const defaults = {
+    APP_LOGO: 'Logo/logo.png',
+    COMPANY_NAME: 'DTK LOGISTICS',
+    APP_SUBTITLE: 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU',
+    TICKET_FOOTER_NOTE: 'Quý khách vui lòng giữ phiếu để đối soát khi ra cổng. Mọi thắc mắc liên hệ Hotline trực ban.'
+  };
+  const nameEl = document.getElementById('setting-company-name');
+  const subEl = document.getElementById('setting-app-subtitle');
+  const logoEl = document.getElementById('setting-logo-url');
+  const noteEl = document.getElementById('setting-ticket-note');
+
+  if (nameEl) nameEl.value = defaults.COMPANY_NAME;
+  if (subEl) subEl.value = defaults.APP_SUBTITLE;
+  if (logoEl) logoEl.value = defaults.APP_LOGO;
+  if (noteEl) noteEl.value = defaults.TICKET_FOOTER_NOTE;
+  previewBrandChanges();
+}
+
+function saveBrandSettings() {
+  const compName = document.getElementById('setting-company-name').value.trim();
+  const appSub = document.getElementById('setting-app-subtitle').value.trim();
+  const logoUrl = document.getElementById('setting-logo-url').value.trim();
+  const ticketNote = document.getElementById('setting-ticket-note').value.trim();
+
+  if (!compName || !appSub) {
+    Swal.fire({ icon: 'warning', title: 'Thiếu thông tin', text: 'Vui lòng điền Tên Doanh Nghiệp và Tiêu Đề Hệ Thống.' });
+    return;
+  }
+
+  const brandData = {
+    COMPANY_NAME: compName,
+    APP_SUBTITLE: appSub,
+    APP_LOGO: logoUrl || 'Logo/logo.png',
+    TICKET_FOOTER_NOTE: ticketNote
+  };
+
+  const btn = document.getElementById('btn-save-brand');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang lưu cấu hình...';
+  }
+
+  Api.call('apiSaveBrandSettings', [brandData])
+    .then(res => {
+      AppState.brandSettings = brandData;
+      localStorage.setItem('dtk_brand_settings', JSON.stringify(brandData));
+      applyBrandSettingsToUI();
+      Swal.fire({ icon: 'success', title: 'Thành công', text: res.message || 'Cập nhật cấu hình thương hiệu thành công!' });
+    })
+    .catch(err => {
+      Swal.fire({ icon: 'error', title: 'Lỗi lưu cấu hình', text: err.message });
+    })
+    .finally(() => {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Lưu Cấu Hình Thương Hiệu';
+      }
+    });
 }
 
 function loadPriceConfigs() {
@@ -2950,7 +3575,10 @@ function loadUsers() {
           <td class="fw-semibold">${u.UserID}</td>
           <td>${u.Email}</td>
           <td>${u.FullName}</td>
-          <td><span class="role-tag">${u.Role}</span></td>
+          <td>
+            <span class="role-tag">${u.Role}</span>
+            <small class="d-block text-muted" style="font-size:0.7rem;">${getRoleDesc(u.Role)}</small>
+          </td>
           <td><span class="badge bg-${u.Status === 'ACTIVE' ? 'success' : 'danger'}">${u.Status}</span></td>
           <td>${u.CreatedAt || '—'}</td>
           <td class="text-center">
@@ -2964,10 +3592,23 @@ function loadUsers() {
     });
 }
 
+function getRoleDesc(role) {
+  switch (role) {
+    case 'ADMIN': return 'Full quyền hệ thống';
+    case 'GATE_IN': return 'Cổng vào & Import file';
+    case 'YARD': return 'Get in / Quản lý bãi';
+    case 'GATE_OUT': return 'Cổng ra & Thu phí';
+    case 'BAI': return 'Quản lý xe bãi';
+    default: return '';
+  }
+}
+
 function openAddUserModal() {
   document.getElementById('userModalTitle').textContent = 'Thêm Người Dùng Mới';
   document.getElementById('u-id').value = '';
   document.getElementById('u-email').value = '';
+  const pwdInput = document.getElementById('u-password');
+  if (pwdInput) pwdInput.value = '';
   document.getElementById('u-name').value = '';
   document.getElementById('u-role').value = 'GATE_IN';
   document.getElementById('u-status').value = 'ACTIVE';
@@ -2978,6 +3619,8 @@ function openEditUserModal(u) {
   document.getElementById('userModalTitle').textContent = 'Sửa Thông Tin Tài Khoản';
   document.getElementById('u-id').value = u.UserID || '';
   document.getElementById('u-email').value = u.Email || '';
+  const pwdInput = document.getElementById('u-password');
+  if (pwdInput) pwdInput.value = '';
   document.getElementById('u-name').value = u.FullName || '';
   document.getElementById('u-role').value = u.Role || 'GATE_IN';
   document.getElementById('u-status').value = u.Status || 'ACTIVE';
@@ -2992,6 +3635,11 @@ function saveUserFromModal() {
     Role: document.getElementById('u-role').value,
     Status: document.getElementById('u-status').value
   };
+
+  const pwdInput = document.getElementById('u-password');
+  if (pwdInput && pwdInput.value.trim()) {
+    data.Password = pwdInput.value.trim();
+  }
 
   Api.call('apiSaveUser', [data])
     .then(res => {
@@ -3178,11 +3826,17 @@ const MockBackend = (function() {
           { PriceID: 'PRC-003', VehicleType: 'TRUCK', MinWeightKg: 7000.01, MaxWeightKg: '', PricePerDay: 100000, EffectiveDate: '01/01/2026 00:00:00', Status: 'ACTIVE' }
         ],
         USERS: [
-          { UserID: 'USR-ADMIN-001', Email: 'admin@dtk.local', FullName: 'Quản Trị Viên Hệ Thống', Role: 'ADMIN', Status: 'ACTIVE', CreatedAt: '01/01/2026 00:00:00' },
-          { UserID: 'USR-GATEIN-001', Email: 'gatein@dtk.local', FullName: 'Nhân Viên Cổng Vào', Role: 'GATE_IN', Status: 'ACTIVE', CreatedAt: '01/01/2026 00:00:00' },
-          { UserID: 'USR-YARD-001', Email: 'yard@dtk.local', FullName: 'Nhân Viên Bãi', Role: 'YARD', Status: 'ACTIVE', CreatedAt: '01/01/2026 00:00:00' },
-          { UserID: 'USR-GATEOUT-001', Email: 'gateout@dtk.local', FullName: 'Nhân Viên Cổng Ra', Role: 'GATE_OUT', Status: 'ACTIVE', CreatedAt: '01/01/2026 00:00:00' }
+          { UserID: 'USR-ADMIN-001', Email: 'admin@dtk.local', FullName: 'Quản Trị Viên Hệ Thống', Role: 'ADMIN', Status: 'ACTIVE', Password: 'admin', CreatedAt: '01/01/2026 00:00:00' },
+          { UserID: 'USR-GATEIN-001', Email: 'gatein@dtk.local', FullName: 'Nhân Viên Cổng Vào', Role: 'GATE_IN', Status: 'ACTIVE', Password: '123', CreatedAt: '01/01/2026 00:00:00' },
+          { UserID: 'USR-YARD-001', Email: 'yard@dtk.local', FullName: 'Nhân Viên Bãi', Role: 'YARD', Status: 'ACTIVE', Password: '123', CreatedAt: '01/01/2026 00:00:00' },
+          { UserID: 'USR-GATEOUT-001', Email: 'gateout@dtk.local', FullName: 'Nhân Viên Cổng Ra', Role: 'GATE_OUT', Status: 'ACTIVE', Password: '123', CreatedAt: '01/01/2026 00:00:00' }
         ],
+        SETTINGS: {
+          COMPANY_NAME: 'DTK LOGISTICS',
+          APP_SUBTITLE: 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU',
+          APP_LOGO: 'Logo/logo.png',
+          TICKET_FOOTER_NOTE: 'Quý khách vui lòng giữ phiếu để đối soát khi ra cổng. Mọi thắc mắc liên hệ Hotline trực ban.'
+        },
         AUDIT: [
           { Timestamp: '08/10/2026 08:30:00', UserEmail: 'yard@dtk.local', Action: 'READY_TO_EXIT', Entity: 'VEHICLE', EntityID: 'VH-20261008-1002', OldStatus: 'IN_YARD', NewStatus: 'READY_TO_EXIT', Description: 'Duyệt xe 29C67890 sẵn sàng xuất bãi.' }
         ]
@@ -3197,7 +3851,56 @@ const MockBackend = (function() {
   }
 
   return {
-    apiGetInitialData: () => ({ success: true, data: { user: getDB().USERS[0] } }),
+    apiGetInitialData: () => {
+      const db = getDB();
+      return {
+        success: true,
+        data: {
+          settings: db.SETTINGS || AppState.brandSettings,
+          rolePermissions: AppState.rolePermissions,
+          user: db.USERS[0]
+        }
+      };
+    },
+    apiLogin: (identifier, password) => {
+      const db = getDB();
+      const s = String(identifier || '').trim().toLowerCase();
+      const u = db.USERS.find(item => 
+        String(item.Email || '').toLowerCase() === s || 
+        String(item.UserID || '').toLowerCase() === s
+      );
+
+      if (!u) {
+        return { success: false, message: 'Tài khoản không tồn tại trên hệ thống.' };
+      }
+      if (u.Status === 'INACTIVE') {
+        return { success: false, message: 'Tài khoản đã bị khóa.' };
+      }
+
+      const expectedPwd = u.Password || (u.Role === 'ADMIN' ? 'admin' : '123');
+      if (password !== undefined && String(password) !== expectedPwd) {
+        return { success: false, message: 'Mật khẩu không chính xác.' };
+      }
+
+      return {
+        success: true,
+        data: {
+          id: u.UserID,
+          email: u.Email,
+          name: u.FullName,
+          role: u.Role,
+          status: u.Status,
+          isLoggedIn: true
+        }
+      };
+    },
+    apiGetBrandSettings: () => ({ success: true, data: getDB().SETTINGS || AppState.brandSettings }),
+    apiSaveBrandSettings: (brandData) => {
+      const db = getDB();
+      db.SETTINGS = Object.assign(db.SETTINGS || {}, brandData);
+      saveDB(db);
+      return { success: true, message: 'Lưu cấu hình thương hiệu thành công!' };
+    },
     apiInitializeDatabase: () => {
       localStorage.removeItem(STORAGE_KEY);
       getDB();
@@ -3488,10 +4191,14 @@ const MockBackend = (function() {
       const db = getDB();
       if (data.UserID) {
         const u = db.USERS.find(i => i.UserID === data.UserID);
-        if (u) Object.assign(u, data);
+        if (u) {
+          Object.assign(u, data);
+          if (data.Password) u.Password = data.Password;
+        }
       } else {
         data.UserID = 'USR-' + Date.now();
         data.CreatedAt = '08/10/2026';
+        if (!data.Password) data.Password = '123';
         db.USERS.push(data);
       }
       saveDB(db);

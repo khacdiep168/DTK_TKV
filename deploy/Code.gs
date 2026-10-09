@@ -31,10 +31,12 @@ const CONFIG = {
   TIMEZONE: 'Asia/Ho_Chi_Minh',
   TICKET_PREFIX: 'BAI',
   DEFAULT_TRUCK_WEIGHT_THRESHOLD_KG: 7000,
-  APP_NAME: 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU',
-  VERSION: '1.0.0',
-  LOCK_TIMEOUT_MS: 15000, // 15 seconds wait for LockService
-  SPREADSHEET_ID: '1wZicF5pXnYOY8crfQo0nQISpD8n3XnnCUrg54TKN6MQ' // ID Google Sheet đích
+  APP_NAME: 'DTK LOGISTICS',
+  APP_SUBTITLE: 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU',
+  APP_LOGO: 'Logo/logo.png',
+  VERSION: '1.1.0',
+  LOCK_TIMEOUT_MS: 15000,
+  SPREADSHEET_ID: '1wZicF5pXnYOY8crfQo0nQISpD8n3XnnCUrg54TKN6MQ'
 };
 
 // 10 Bảng chuẩn theo DATABASE.md Section 2 & 52
@@ -73,13 +75,22 @@ const VEHICLE_TYPE = {
   TRUCK: 'TRUCK'
 };
 
-// Phân quyền theo DATABASE.md Section 4 & CLAUDE.md Section 34
+// Phân quyền theo yêu cầu
 const ROLES = {
   ADMIN: 'ADMIN',
   BAI: 'BAI',
   GATE_IN: 'GATE_IN',
   YARD: 'YARD',
   GATE_OUT: 'GATE_OUT'
+};
+
+// Danh sách các view/chức năng mà từng Role được phép truy cập
+const ROLE_PERMISSIONS = {
+  ADMIN: ['dashboard', 'gatein', 'yard', 'gateout', 'import', 'reports', 'settings'],
+  GATE_IN: ['dashboard', 'gatein', 'import', 'reports'], // Cổng vào được import excel & cổng vào
+  YARD: ['dashboard', 'yard'],                           // Get In thực hiện chức năng getin / bãi
+  GATE_OUT: ['dashboard', 'gateout', 'reports'],         // Cổng ra thực hiện cổng ra & xem báo cáo
+  BAI: ['dashboard', 'import', 'reports']
 };
 
 // Trạng thái Batch Import theo DATABASE.md Section 5
@@ -112,7 +123,7 @@ const AUDIT_ACTIONS = {
 
 // Cấu trúc tiêu đề cột (Columns Headers) cho từng Sheet chuẩn xác 100%
 const SHEET_HEADERS = {
-  USERS: ['UserID', 'Email', 'FullName', 'Role', 'Status', 'CreatedAt', 'UpdatedAt'],
+  USERS: ['UserID', 'Email', 'FullName', 'Role', 'Status', 'CreatedAt', 'UpdatedAt', 'Password'],
   IMPORT_BATCH: ['BatchID', 'FileName', 'Company', 'ImportTime', 'ImportBy', 'TotalRows', 'SuccessRows', 'ErrorRows', 'Status', 'Note'],
   VEHICLE_REGISTER: ['VehicleID', 'BatchID', 'CargoDirection', 'VehicleType', 'LicensePlate', 'ContainerNo', 'WeightKg', 'Company', 'DriverName', 'DriverPhone', 'RegistrationDate', 'Status', 'Note', 'CreatedAt', 'CreatedBy', 'UpdatedAt', 'UpdatedBy'],
   GATE_IN: ['GateInID', 'VehicleID', 'TicketNo', 'GateInTime', 'GateInBy', 'Status', 'PrintedAt'],
@@ -668,14 +679,16 @@ var DatabaseService = (function() {
         const defaultSettings = [
           { SettingKey: 'TIMEZONE', SettingValue: 'Asia/Ho_Chi_Minh', Description: 'Múi giờ hệ thống', UpdatedAt: nowStr, UpdatedBy: 'SYSTEM' },
           { SettingKey: 'TICKET_PREFIX', SettingValue: 'BAI', Description: 'Tiền tố mã vé Gate In', UpdatedAt: nowStr, UpdatedBy: 'SYSTEM' },
-          { SettingKey: 'COMPANY_NAME', SettingValue: 'BÃI XE CẢNG HÀNG HÓA XUẤT NHẬP KHẨU', Description: 'Tên đơn vị quản lý bãi', UpdatedAt: nowStr, UpdatedBy: 'SYSTEM' },
+          { SettingKey: 'COMPANY_NAME', SettingValue: 'DTK LOGISTICS', Description: 'Tên thương hiệu đơn vị', UpdatedAt: nowStr, UpdatedBy: 'SYSTEM' },
+          { SettingKey: 'APP_SUBTITLE', SettingValue: 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU', Description: 'Tiêu đề phụ hệ thống', UpdatedAt: nowStr, UpdatedBy: 'SYSTEM' },
+          { SettingKey: 'APP_LOGO', SettingValue: 'Logo/logo.png', Description: 'Đường dẫn hoặc Data URL ảnh logo', UpdatedAt: nowStr, UpdatedBy: 'SYSTEM' },
           { SettingKey: 'TRUCK_WEIGHT_THRESHOLD_KG', SettingValue: '7000', Description: 'Ngưỡng khối lượng xe tải phân bậc phí (kg)', UpdatedAt: nowStr, UpdatedBy: 'SYSTEM' },
           { SettingKey: 'TICKET_FOOTER_NOTE', SettingValue: 'Vui lòng giữ phiếu để làm thủ tục ra bãi.', Description: 'Ghi chú chân phiếu', UpdatedAt: nowStr, UpdatedBy: 'SYSTEM' }
         ];
         insertRows(SHEETS.SETTINGS, defaultSettings);
       }
 
-      // 3. Khởi tạo tài khoản ADMIN mặc định (USERS)
+      // 3. Khởi tạo tài khoản người dùng mặc định (USERS)
       const usersSheet = ss.getSheetByName(SHEETS.USERS);
       if (usersSheet && usersSheet.getLastRow() <= 1) {
         let adminEmail = 'admin@dtk.local';
@@ -693,7 +706,8 @@ var DatabaseService = (function() {
             Role: ROLES.ADMIN,
             Status: 'ACTIVE',
             CreatedAt: nowStr,
-            UpdatedAt: nowStr
+            UpdatedAt: nowStr,
+            Password: 'admin' // Mật khẩu mặc định: admin
           },
           {
             UserID: 'USR-GATEIN-001',
@@ -702,7 +716,8 @@ var DatabaseService = (function() {
             Role: ROLES.GATE_IN,
             Status: 'ACTIVE',
             CreatedAt: nowStr,
-            UpdatedAt: nowStr
+            UpdatedAt: nowStr,
+            Password: '123' // Mật khẩu mặc định: 123
           },
           {
             UserID: 'USR-YARD-001',
@@ -711,7 +726,8 @@ var DatabaseService = (function() {
             Role: ROLES.YARD,
             Status: 'ACTIVE',
             CreatedAt: nowStr,
-            UpdatedAt: nowStr
+            UpdatedAt: nowStr,
+            Password: '123'
           },
           {
             UserID: 'USR-GATEOUT-001',
@@ -720,7 +736,18 @@ var DatabaseService = (function() {
             Role: ROLES.GATE_OUT,
             Status: 'ACTIVE',
             CreatedAt: nowStr,
-            UpdatedAt: nowStr
+            UpdatedAt: nowStr,
+            Password: '123'
+          },
+          {
+            UserID: 'USR-BAI-001',
+            Email: 'bai@dtk.local',
+            FullName: 'Nhân Viên Khai Báo Bãi',
+            Role: ROLES.BAI,
+            Status: 'ACTIVE',
+            CreatedAt: nowStr,
+            UpdatedAt: nowStr,
+            Password: '123'
           }
         ];
         insertRows(SHEETS.USERS, defaultUsers);
@@ -764,6 +791,61 @@ var DatabaseService = (function() {
 var AuthService = (function() {
 
   /**
+   * Đăng nhập hệ thống bằng Email/UserID và Password
+   */
+  function login(identifier, password) {
+    if (!identifier) {
+      return responseError('Vui lòng nhập tài khoản hoặc email.', 'INVALID_DATA');
+    }
+
+    const allUsers = DatabaseService.readAll(SHEETS.USERS);
+    const searchKey = String(identifier).trim().toLowerCase();
+    
+    const user = allUsers.find(u => 
+      String(u.Email || '').toLowerCase() === searchKey || 
+      String(u.UserID || '').toLowerCase() === searchKey
+    );
+
+    if (!user) {
+      return responseError('Tài khoản không tồn tại trong hệ thống.', 'USER_NOT_FOUND');
+    }
+
+    if (user.Status === 'INACTIVE') {
+      return responseError('Tài khoản này đã bị vô hiệu hóa. Vui lòng liên hệ Admin.', 'ACCOUNT_DISABLED');
+    }
+
+    // Kiểm tra mật khẩu (nếu trong DB chưa có password thì mật khẩu mặc định là 123 hoặc admin nếu role là ADMIN)
+    const expectedPassword = user.Password ? String(user.Password) : (user.Role === ROLES.ADMIN ? 'admin' : '123');
+    if (password !== undefined && String(password) !== expectedPassword) {
+      return responseError('Mật khẩu không chính xác.', 'WRONG_PASSWORD');
+    }
+
+    const permissions = ROLE_PERMISSIONS[user.Role] || [];
+
+    const sessionUser = {
+      id: user.UserID,
+      email: user.Email,
+      name: user.FullName,
+      role: user.Role,
+      status: user.Status,
+      permissions: permissions,
+      isLoggedIn: true
+    };
+
+    AuditService.writeLog(
+      AUDIT_ACTIONS.UPDATE, 
+      'USER', 
+      user.UserID, 
+      '', 
+      'LOGGED_IN', 
+      'Người dùng đăng nhập thành công: ' + user.FullName + ' (' + user.Role + ')',
+      sessionUser
+    );
+
+    return responseSuccess('Đăng nhập thành công', sessionUser);
+  }
+
+  /**
    * Lấy thông tin người dùng hiện tại đang đăng nhập.
    * Ưu tiên lấy từ Session Google Apps Script, kết hợp bảng USERS.
    */
@@ -791,6 +873,7 @@ var AuthService = (function() {
             name: found.FullName,
             role: 'INACTIVE',
             status: 'INACTIVE',
+            permissions: [],
             isLoggedIn: false,
             message: 'Tài khoản của bạn đã bị vô hiệu hóa.'
           };
@@ -801,12 +884,13 @@ var AuthService = (function() {
           name: found.FullName,
           role: found.Role,
           status: found.Status,
+          permissions: ROLE_PERMISSIONS[found.Role] || [],
           isLoggedIn: true
         };
       }
     }
 
-    // Nếu chạy chế độ nội bộ hoặc chưa gán email, lấy tài khoản ADMIN đầu tiên hoặc tạo profile tạm
+    // Nếu chạy chế độ nội bộ hoặc chưa gán email, lấy tài khoản ADMIN đầu tiên
     if (allUsers.length > 0) {
       const admin = allUsers.find(u => u.Role === ROLES.ADMIN) || allUsers[0];
       return {
@@ -815,6 +899,7 @@ var AuthService = (function() {
         name: admin.FullName,
         role: admin.Role,
         status: admin.Status,
+        permissions: ROLE_PERMISSIONS[admin.Role] || [],
         isLoggedIn: true
       };
     }
@@ -826,12 +911,13 @@ var AuthService = (function() {
       name: 'Quản Trị Viên',
       role: ROLES.ADMIN,
       status: 'ACTIVE',
+      permissions: ROLE_PERMISSIONS[ROLES.ADMIN] || [],
       isLoggedIn: true
     };
   }
 
   /**
-   * Kiểm tra quyền truy cập của người dùng
+   * Kiểm tra quyền truy cập của người dùng theo Role
    * @param {Array<string>|string} allowedRoles - Danh sách role được phép
    */
   function requireRole(allowedRoles) {
@@ -850,11 +936,31 @@ var AuthService = (function() {
   }
 
   /**
+   * Kiểm tra xem một role có được phép truy cập view/tính năng không
+   */
+  function hasPermission(role, viewId) {
+    if (role === ROLES.ADMIN) return true;
+    const allowedViews = ROLE_PERMISSIONS[role] || [];
+    return allowedViews.indexOf(viewId) !== -1;
+  }
+
+  /**
    * Lấy danh sách tất cả người dùng (Dành cho Admin)
    */
   function getAllUsers() {
     requireRole([ROLES.ADMIN]);
-    return DatabaseService.readAll(SHEETS.USERS);
+    const users = DatabaseService.readAll(SHEETS.USERS);
+    // Ẩn mật khẩu khi trả về danh sách
+    return users.map(u => ({
+      UserID: u.UserID,
+      Email: u.Email,
+      FullName: u.FullName,
+      Role: u.Role,
+      Status: u.Status,
+      CreatedAt: u.CreatedAt,
+      UpdatedAt: u.UpdatedAt,
+      HasPassword: Boolean(u.Password)
+    }));
   }
 
   /**
@@ -874,12 +980,16 @@ var AuthService = (function() {
 
     if (userData.UserID || existing) {
       const targetId = userData.UserID || existing.UserID;
-      DatabaseService.updateRow(SHEETS.USERS, 'UserID', targetId, {
+      const updatePayload = {
         FullName: userData.FullName,
         Role: userData.Role,
         Status: userData.Status || 'ACTIVE',
         UpdatedAt: nowStr
-      });
+      };
+      if (userData.Password && String(userData.Password).trim()) {
+        updatePayload.Password = String(userData.Password).trim();
+      }
+      DatabaseService.updateRow(SHEETS.USERS, 'UserID', targetId, updatePayload);
       AuditService.writeLog(AUDIT_ACTIONS.UPDATE, 'USER', targetId, '', '', 'Cập nhật tài khoản: ' + userData.Email, currentUser);
       return responseSuccess('Cập nhật tài khoản thành công.');
     } else {
@@ -891,7 +1001,8 @@ var AuthService = (function() {
         Role: userData.Role,
         Status: userData.Status || 'ACTIVE',
         CreatedAt: nowStr,
-        UpdatedAt: nowStr
+        UpdatedAt: nowStr,
+        Password: userData.Password ? String(userData.Password).trim() : '123'
       };
       DatabaseService.insertRow(SHEETS.USERS, newUser);
       AuditService.writeLog(AUDIT_ACTIONS.UPDATE, 'USER', newUserId, '', '', 'Tạo mới tài khoản: ' + userData.Email, currentUser);
@@ -921,8 +1032,10 @@ var AuthService = (function() {
   }
 
   return {
+    login: login,
     getCurrentUser: getCurrentUser,
     requireRole: requireRole,
+    hasPermission: hasPermission,
     getAllUsers: getAllUsers,
     saveUser: saveUser,
     toggleUserStatus: toggleUserStatus
@@ -2225,19 +2338,103 @@ var ReportService = (function() {
 function apiGetInitialData() {
   try {
     const user = AuthService.getCurrentUser();
-    let settings = [];
+    let settingsRows = [];
     try {
-      settings = DatabaseService.readAll(SHEETS.SETTINGS);
+      settingsRows = DatabaseService.readAll(SHEETS.SETTINGS);
     } catch (e) {}
+
+    const brandSettings = {
+      APP_LOGO: CONFIG.APP_LOGO,
+      COMPANY_NAME: CONFIG.COMPANY_NAME,
+      APP_SUBTITLE: CONFIG.APP_SUBTITLE,
+      TICKET_FOOTER_NOTE: CONFIG.TICKET_FOOTER_NOTE
+    };
+
+    settingsRows.forEach(r => {
+      if (r.SettingKey && brandSettings.hasOwnProperty(r.SettingKey)) {
+        brandSettings[r.SettingKey] = r.SettingValue;
+      }
+    });
 
     return responseSuccess('Khởi tạo thành công', {
       user: user,
-      settings: settings,
-      appName: CONFIG.APP_NAME,
+      settings: brandSettings,
+      rolePermissions: ROLE_PERMISSIONS,
+      appName: brandSettings.COMPANY_NAME || CONFIG.APP_NAME,
       version: CONFIG.VERSION
     });
   } catch (err) {
     return responseError(err.message, 'INIT_ERROR');
+  }
+}
+
+/**
+ * API Đăng nhập hệ thống
+ */
+function apiLogin(identifier, password) {
+  try {
+    return AuthService.login(identifier, password);
+  } catch (err) {
+    return responseError(err.message);
+  }
+}
+
+/**
+ * API Lấy cấu hình thương hiệu và logo
+ */
+function apiGetBrandSettings() {
+  try {
+    const rows = DatabaseService.readAll(SHEETS.SETTINGS);
+    const brand = {
+      APP_LOGO: CONFIG.APP_LOGO,
+      COMPANY_NAME: CONFIG.COMPANY_NAME,
+      APP_SUBTITLE: CONFIG.APP_SUBTITLE,
+      TICKET_FOOTER_NOTE: CONFIG.TICKET_FOOTER_NOTE
+    };
+    rows.forEach(r => {
+      if (r.SettingKey && brand.hasOwnProperty(r.SettingKey)) {
+        brand[r.SettingKey] = r.SettingValue;
+      }
+    });
+    return responseSuccess('Thành công', brand);
+  } catch (err) {
+    return responseError(err.message);
+  }
+}
+
+/**
+ * API Lưu cấu hình thương hiệu và logo
+ */
+function apiSaveBrandSettings(brandData) {
+  try {
+    AuthService.requireRole([ROLES.ADMIN]);
+    const nowStr = formatDateTime(new Date());
+    const keys = ['APP_LOGO', 'COMPANY_NAME', 'APP_SUBTITLE', 'TICKET_FOOTER_NOTE'];
+    
+    keys.forEach(key => {
+      if (brandData && brandData[key] !== undefined) {
+        const val = String(brandData[key]);
+        const existing = DatabaseService.findRow(SHEETS.SETTINGS, 'SettingKey', key);
+        if (existing) {
+          DatabaseService.updateRow(SHEETS.SETTINGS, 'SettingKey', key, {
+            SettingValue: val,
+            UpdatedAt: nowStr
+          });
+        } else {
+          DatabaseService.insertRow(SHEETS.SETTINGS, {
+            SettingKey: key,
+            SettingValue: val,
+            Description: 'Cấu hình thương hiệu',
+            UpdatedAt: nowStr
+          });
+        }
+      }
+    });
+
+    AuditService.writeLog(AUDIT_ACTIONS.UPDATE, 'SETTINGS', 'BRAND', '', '', 'Cập nhật cấu hình thương hiệu & logo');
+    return responseSuccess('Cập nhật cấu hình thương hiệu thành công!');
+  } catch (err) {
+    return responseError(err.message);
   }
 }
 

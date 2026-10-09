@@ -29,19 +29,103 @@ function include(filename) {
 function apiGetInitialData() {
   try {
     const user = AuthService.getCurrentUser();
-    let settings = [];
+    let settingsRows = [];
     try {
-      settings = DatabaseService.readAll(SHEETS.SETTINGS);
+      settingsRows = DatabaseService.readAll(SHEETS.SETTINGS);
     } catch (e) {}
+
+    const brandSettings = {
+      APP_LOGO: CONFIG.APP_LOGO,
+      COMPANY_NAME: CONFIG.COMPANY_NAME,
+      APP_SUBTITLE: CONFIG.APP_SUBTITLE,
+      TICKET_FOOTER_NOTE: CONFIG.TICKET_FOOTER_NOTE
+    };
+
+    settingsRows.forEach(r => {
+      if (r.SettingKey && brandSettings.hasOwnProperty(r.SettingKey)) {
+        brandSettings[r.SettingKey] = r.SettingValue;
+      }
+    });
 
     return responseSuccess('Khởi tạo thành công', {
       user: user,
-      settings: settings,
-      appName: CONFIG.APP_NAME,
+      settings: brandSettings,
+      rolePermissions: ROLE_PERMISSIONS,
+      appName: brandSettings.COMPANY_NAME || CONFIG.APP_NAME,
       version: CONFIG.VERSION
     });
   } catch (err) {
     return responseError(err.message, 'INIT_ERROR');
+  }
+}
+
+/**
+ * API Đăng nhập hệ thống
+ */
+function apiLogin(identifier, password) {
+  try {
+    return AuthService.login(identifier, password);
+  } catch (err) {
+    return responseError(err.message);
+  }
+}
+
+/**
+ * API Lấy cấu hình thương hiệu và logo
+ */
+function apiGetBrandSettings() {
+  try {
+    const rows = DatabaseService.readAll(SHEETS.SETTINGS);
+    const brand = {
+      APP_LOGO: CONFIG.APP_LOGO,
+      COMPANY_NAME: CONFIG.COMPANY_NAME,
+      APP_SUBTITLE: CONFIG.APP_SUBTITLE,
+      TICKET_FOOTER_NOTE: CONFIG.TICKET_FOOTER_NOTE
+    };
+    rows.forEach(r => {
+      if (r.SettingKey && brand.hasOwnProperty(r.SettingKey)) {
+        brand[r.SettingKey] = r.SettingValue;
+      }
+    });
+    return responseSuccess('Thành công', brand);
+  } catch (err) {
+    return responseError(err.message);
+  }
+}
+
+/**
+ * API Lưu cấu hình thương hiệu và logo
+ */
+function apiSaveBrandSettings(brandData) {
+  try {
+    AuthService.requireRole([ROLES.ADMIN]);
+    const nowStr = formatDateTime(new Date());
+    const keys = ['APP_LOGO', 'COMPANY_NAME', 'APP_SUBTITLE', 'TICKET_FOOTER_NOTE'];
+    
+    keys.forEach(key => {
+      if (brandData && brandData[key] !== undefined) {
+        const val = String(brandData[key]);
+        const existing = DatabaseService.findRow(SHEETS.SETTINGS, 'SettingKey', key);
+        if (existing) {
+          DatabaseService.updateRow(SHEETS.SETTINGS, 'SettingKey', key, {
+            SettingValue: val,
+            UpdatedAt: nowStr
+          });
+        } else {
+          DatabaseService.insertRow(SHEETS.SETTINGS, {
+            SettingKey: key,
+            SettingValue: val,
+            Description: 'Cấu hình thương hiệu',
+            UpdatedAt: nowStr
+          });
+        }
+      }
+    });
+
+    AuditService.writeLog(AUDIT_ACTIONS.UPDATE, 'SETTINGS', 'BRAND', '', '', 'Cập nhật cấu hình thương hiệu & logo');
+    return responseSuccess('Cập nhật cấu hình thương hiệu thành công!');
+  } catch (err) {
+    return responseError(err.message);
   }
 }
 

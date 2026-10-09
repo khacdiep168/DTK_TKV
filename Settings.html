@@ -5,13 +5,18 @@
     <div class="col-12">
       <ul class="nav nav-pills border-bottom pb-2 gap-2" id="settings-tabs" role="tablist">
         <li class="nav-item">
-          <button class="nav-link active px-3 py-2 fw-semibold" id="tab-prices" onclick="switchSettingsTab('prices')">
+          <button class="nav-link active px-3 py-2 fw-semibold" id="tab-brand" onclick="switchSettingsTab('brand')">
+            <i class="bi bi-palette me-1"></i> Thương Hiệu & Logo
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link px-3 py-2 fw-semibold" id="tab-prices" onclick="switchSettingsTab('prices')">
             <i class="bi bi-tag me-1"></i> Bảng Giá Cấu Hình (PRICE_CONFIG)
           </button>
         </li>
         <li class="nav-item">
           <button class="nav-link px-3 py-2 fw-semibold" id="tab-users" onclick="switchSettingsTab('users')">
-            <i class="bi bi-people me-1"></i> Quản Lý Người Dùng (USERS)
+            <i class="bi bi-people me-1"></i> Quản Lý Tài Khoản (USERS)
           </button>
         </li>
         <li class="nav-item">
@@ -27,13 +32,118 @@
       </ul>
     </div>
 
+    <!-- 0. THƯƠNG HIỆU & LOGO -->
+    <div class="col-12 settings-subview" id="settings-view-brand">
+      <div class="card border-0 shadow-sm rounded-3 p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h6 class="fw-bold mb-1 text-primary"><i class="bi bi-brush me-2"></i>Cấu Hình Nhận Diện Thương Hiệu & Hệ Thống</h6>
+            <small class="text-muted">Tùy biến Logo, Tên đơn vị vận hành, Tiêu đề hệ thống và thông tin in trên phiếu vé bãi xe</small>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <!-- Cột bên trái: Biểu mẫu nhập liệu -->
+          <div class="col-lg-7">
+            <form id="brand-settings-form" onsubmit="event.preventDefault(); saveBrandSettings();">
+              <!-- Tên đơn vị / Doanh nghiệp -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Tên Đơn Vị Doanh Nghiệp (Brand Name) <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="setting-company-name" placeholder="Ví dụ: DTK LOGISTICS" required oninput="previewBrandChanges()">
+                <div class="form-text">Hiển thị nổi bật ở thanh bên trái (Sidebar) và đầu phiếu vé vào bãi.</div>
+              </div>
+
+              <!-- Tiêu đề hệ thống -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Tiêu Đề Phụ Hệ Thống (System Subtitle) <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="setting-app-subtitle" placeholder="Ví dụ: QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU" required oninput="previewBrandChanges()">
+                <div class="form-text">Tiêu đề nghiệp vụ hiển thị bên dưới tên doanh nghiệp và trên thanh tiêu đề ứng dụng.</div>
+              </div>
+
+              <!-- Cấu hình Logo -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Logo Hệ Thống</label>
+                <div class="input-group mb-2">
+                  <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                  <input type="text" class="form-control" id="setting-logo-url" placeholder="Nhập đường dẫn URL ảnh Logo hoặc tải file bên dưới" oninput="previewBrandChanges()">
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <input type="file" id="setting-logo-file" class="d-none" accept="image/*" onchange="handleLogoFileUpload(event)">
+                  <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('setting-logo-file').click()">
+                    <i class="bi bi-upload me-1"></i> Chọn file ảnh từ máy tính (PNG/JPG)
+                  </button>
+                  <button type="button" class="btn btn-outline-danger btn-sm" onclick="resetDefaultBrand()">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Khôi phục mặc định
+                  </button>
+                </div>
+                <div class="form-text">Hỗ trợ ảnh PNG, JPG hoặc SVG. Khuyến nghị ảnh vuông hoặc tỷ lệ ngang gọn.</div>
+              </div>
+
+              <!-- Ghi chú chân phiếu vé -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold">Ghi Chú In Chân Phiếu Vé (Ticket Footer Note)</label>
+                <textarea class="form-control" id="setting-ticket-note" rows="2" placeholder="Ví dụ: Quý khách vui lòng giữ phiếu để đối soát khi ra cổng. Hotline hỗ trợ: 1900 xxxx" oninput="previewBrandChanges()"></textarea>
+                <div class="form-text">Đoạn lưu ý này sẽ tự động in ở đáy các phiếu vào bãi (Khổ 80mm).</div>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4 fw-semibold" id="btn-save-brand">
+                  <i class="bi bi-check2-circle me-1"></i> Lưu Cấu Hình Thương Hiệu
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Cột bên phải: Xem trước Trực Quan (Live Preview) -->
+          <div class="col-lg-5">
+            <div class="border rounded-3 p-3 bg-light h-100">
+              <h6 class="fw-bold mb-3 text-secondary text-uppercase small"><i class="bi bi-eye me-1"></i>Xem Trước Giao Diện (Live Preview)</h6>
+              
+              <!-- Xem trước Sidebar Header -->
+              <div class="card border-0 shadow-sm p-3 mb-3" style="background: #0f172a; color: #ffffff;">
+                <small class="text-muted mb-2 d-block">Thanh bên trái (Sidebar Menu):</small>
+                <div class="d-flex align-items-center gap-3">
+                  <div style="width: 44px; height: 44px; background: #ffffff; border-radius: 8px; padding: 3px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    <img id="preview-logo-img" src="Logo/logo.png" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="Logo Preview" onerror="this.src='https://api.iconify.design/bi:truck-front-fill.svg?color=%232563eb'">
+                  </div>
+                  <div>
+                    <div id="preview-company-name" class="fw-bold text-white fs-6 lh-1">DTK LOGISTICS</div>
+                    <small id="preview-app-subtitle" class="text-secondary text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Xem trước Header In Vé -->
+              <div class="card border p-3 bg-white shadow-sm">
+                <small class="text-muted mb-2 d-block">Đầu Phiếu In Khổ 80mm:</small>
+                <div class="text-center pb-2 border-bottom border-dashed">
+                  <img id="preview-ticket-logo" src="Logo/logo.png" style="max-height: 38px; object-fit: contain; margin-bottom: 4px;" alt="Ticket Logo" onerror="this.src='https://api.iconify.design/bi:truck-front-fill.svg?color=%232563eb'">
+                  <div id="preview-ticket-company" class="fw-bold text-dark small text-uppercase">DTK LOGISTICS</div>
+                  <div id="preview-ticket-subtitle" class="text-muted" style="font-size: 0.68rem;">QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU</div>
+                </div>
+                <div class="text-center py-2">
+                  <span class="badge bg-primary text-white">PHIẾU VÀO BÃI XE</span>
+                  <div class="small fw-semibold mt-1">29C-123.45</div>
+                </div>
+                <div class="pt-2 border-top border-dashed text-center">
+                  <small id="preview-ticket-note" class="text-muted fst-italic" style="font-size: 0.65rem;">
+                    Quý khách vui lòng giữ phiếu để đối soát khi ra cổng.
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 1. BẢNG GIÁ PRICE_CONFIG -->
-    <div class="col-12 settings-subview" id="settings-view-prices">
+    <div class="col-12 settings-subview d-none" id="settings-view-prices">
       <div class="card border-0 shadow-sm rounded-3 p-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
-            <h6 class="fw-bold mb-1">Cấu Hình Bảng Giá Lưu Bãi (PRICE_CONFIG)</h6>
-            <small class="text-muted">Đơn giá động theo ngày, tải trọng xe và loại phương tiện theo CLAUDE.md Section 22</small>
+            <h6 class="fw-bold mb-1 text-primary"><i class="bi bi-tag me-2"></i>Cấu Hình Bảng Giá Lưu Bãi (PRICE_CONFIG)</h6>
+            <small class="text-muted">Đơn giá động theo ngày, tải trọng xe và loại phương tiện theo quy định vận hành</small>
           </div>
           <button class="btn btn-primary btn-sm" onclick="openAddPriceModal()">
             <i class="bi bi-plus-circle me-1"></i> Thêm Mức Giá Mới

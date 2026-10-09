@@ -8,10 +8,12 @@ const CONFIG = {
   TIMEZONE: 'Asia/Ho_Chi_Minh',
   TICKET_PREFIX: 'BAI',
   DEFAULT_TRUCK_WEIGHT_THRESHOLD_KG: 7000,
-  APP_NAME: 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU',
-  VERSION: '1.0.0',
-  LOCK_TIMEOUT_MS: 15000, // 15 seconds wait for LockService
-  SPREADSHEET_ID: '1wZicF5pXnYOY8crfQo0nQISpD8n3XnnCUrg54TKN6MQ' // ID Google Sheet đích
+  APP_NAME: 'DTK LOGISTICS',
+  APP_SUBTITLE: 'QUẢN LÝ BÃI XE XUẤT NHẬP KHẨU',
+  APP_LOGO: 'Logo/logo.png',
+  VERSION: '1.1.0',
+  LOCK_TIMEOUT_MS: 15000,
+  SPREADSHEET_ID: '1wZicF5pXnYOY8crfQo0nQISpD8n3XnnCUrg54TKN6MQ'
 };
 
 // 10 Bảng chuẩn theo DATABASE.md Section 2 & 52
@@ -50,13 +52,22 @@ const VEHICLE_TYPE = {
   TRUCK: 'TRUCK'
 };
 
-// Phân quyền theo DATABASE.md Section 4 & CLAUDE.md Section 34
+// Phân quyền theo yêu cầu
 const ROLES = {
   ADMIN: 'ADMIN',
   BAI: 'BAI',
   GATE_IN: 'GATE_IN',
   YARD: 'YARD',
   GATE_OUT: 'GATE_OUT'
+};
+
+// Danh sách các view/chức năng mà từng Role được phép truy cập
+const ROLE_PERMISSIONS = {
+  ADMIN: ['dashboard', 'gatein', 'yard', 'gateout', 'import', 'reports', 'settings'],
+  GATE_IN: ['dashboard', 'gatein', 'import', 'reports'], // Cổng vào được import excel & cổng vào
+  YARD: ['dashboard', 'yard'],                           // Get In thực hiện chức năng getin / bãi
+  GATE_OUT: ['dashboard', 'gateout', 'reports'],         // Cổng ra thực hiện cổng ra & xem báo cáo
+  BAI: ['dashboard', 'import', 'reports']
 };
 
 // Trạng thái Batch Import theo DATABASE.md Section 5
@@ -89,7 +100,7 @@ const AUDIT_ACTIONS = {
 
 // Cấu trúc tiêu đề cột (Columns Headers) cho từng Sheet chuẩn xác 100%
 const SHEET_HEADERS = {
-  USERS: ['UserID', 'Email', 'FullName', 'Role', 'Status', 'CreatedAt', 'UpdatedAt'],
+  USERS: ['UserID', 'Email', 'FullName', 'Role', 'Status', 'CreatedAt', 'UpdatedAt', 'Password'],
   IMPORT_BATCH: ['BatchID', 'FileName', 'Company', 'ImportTime', 'ImportBy', 'TotalRows', 'SuccessRows', 'ErrorRows', 'Status', 'Note'],
   VEHICLE_REGISTER: ['VehicleID', 'BatchID', 'CargoDirection', 'VehicleType', 'LicensePlate', 'ContainerNo', 'WeightKg', 'Company', 'DriverName', 'DriverPhone', 'RegistrationDate', 'Status', 'Note', 'CreatedAt', 'CreatedBy', 'UpdatedAt', 'UpdatedBy'],
   GATE_IN: ['GateInID', 'VehicleID', 'TicketNo', 'GateInTime', 'GateInBy', 'Status', 'PrintedAt'],
